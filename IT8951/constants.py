@@ -1,0 +1,132 @@
+
+# adjust for the specific display!
+# for example, 1500 corresponds to VCOM of -1.5 V
+# in general, VCOM = -1000*voltage
+VCOM = 2030
+
+# pin numbers
+class Pins:
+    CS    = 8
+    HRDY  = 24
+    RESET = 17
+
+# struct format strings for various packed messages
+# the first of each tuple is the field name; the second
+# is the field type for use in the struct module
+# TODO: define methods for nicely packing/unpacking these
+
+LOAD_IMG_INFO = [
+    ('endian_type',            'H'),
+    ('pixel_format',           'H'),
+    ('rotate_mode',            'H'),
+    ('source_frame_buf_start', 'I'),
+    ('target_img_buf_start',   'I'),
+]
+
+AREA_IMG_INFO = [
+    ('X',      'H'),
+    ('Y',      'H'),
+    ('width',  'H'),
+    ('height', 'H')
+]
+
+DEV_INFO = [
+    ('panel_width',      'H'),
+    ('panel_height',     'H'),
+    ('img_buf_addr_L',   'H'),
+    ('img_buf_addr_H',   'H'),
+    ('firmware_version', '8H'),
+    ('LUT_version',      '8H')
+]
+
+# command codes
+class Cmds:
+    SYS_RUN      = 0x01
+    STANDBY      = 0x02
+    SLEEP        = 0x03
+    REG_RD       = 0x10
+    REG_WR       = 0x11
+    MEM_BST_RD_T = 0x12
+    MEM_BST_RD_S = 0x13
+    MEM_BST_WR   = 0x14
+    MEM_BST_END  = 0x15
+    LD_IMG       = 0x20
+    LD_IMG_AREA  = 0x21
+    LD_IMG_END   = 0x22
+
+    # "user-defined" commands from Waveshare I guess
+    DPY_AREA     = 0x034
+    GET_DEV_INFO = 0x302
+    DPY_BUF_AREA = 0x037
+    VCOM         = 0x039
+
+# honestly not sure what panel this is about
+# TODO: this probably can be deleted since we get info from device
+PANEL_WIDTH = 1024
+PANEL_HEIGHT = 758
+
+# rotation modes
+# TODO: make sure CW/CCW are correct
+class Rotate:
+    NO   = 0
+    CW   = 1
+    CCW  = 3
+    FLIP = 2  # 180 degree rotation
+
+# TODO: get rid of these M's
+class PixelModes:
+    M_2BPP = 0
+    M_3BPP = 1
+    M_4BPP = 2
+    M_8BPP = 3
+
+# these waveform modes are described here:
+# http://www.waveshare.net/w/upload/c/c4/E-paper-mode-declaration.pdf
+class WaveformModes:
+    INIT  = 0
+    DU    = 1
+    GC16  = 2
+    GL16  = 3
+    GLR16 = 4
+    GLD16 = 5
+    A2    = 6
+    DU4   = 7
+
+class EndianTypes:
+    LITTLE = 0
+    BIG    = 1
+
+class AutoLUT:
+    ENABLE  = 1
+    DISABLE = 0
+
+# LUT engine status?
+ALL_LUTE_BUSY = 0xFFFF
+
+# TCon registers
+class DisplayRegisters:
+    BASE = 0x1000           # base address. register RW access for I80 only
+
+    LUT0EWHR  = BASE + 0x00  # LUT0 engine width height
+    LUT0XYR   = BASE + 0x40  # LUT0 XY
+    LUT0BADDR = BASE + 0x80  # LUT0 base address
+    LUT0MFN   = BASE + 0xC0  # LUT0 mode and frame number
+    LUT01AF   = BASE + 0x114 # LUT0/LUT1 active flag
+
+    UP0SR     = BASE + 0x134  # update parameter0 setting
+    UP1SR     = BASE + 0x138  # update parameter1 setting
+    LUT0ABFRV = BASE + 0x13C  # LUT0 alpha blend and fill rectangle value
+    UPBBADDR  = BASE + 0x17C  # update buffer base address
+    LUT0IMXY  = BASE + 0x180  # LUT0 image buffer X/Y offset
+    LUTAFSR   = BASE + 0x224  # LUT status (status of all LUT engines)
+
+    BGVR      = BASE + 0x250  # bitmap (1bpp) image color table
+
+class SystemRegisters:
+    BASE = 0x0
+    I80CPCR = BASE + 0x04
+
+class MemConvRegisters:
+    BASE = 0x200
+    MCSR  = BASE + 0x0
+    LISAR = BASE + 0x8
