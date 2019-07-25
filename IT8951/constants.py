@@ -1,9 +1,4 @@
 
-# adjust for the specific display!
-# for example, 1500 corresponds to VCOM of -1.5 V
-# in general, VCOM = -1000*voltage
-VCOM = 2030
-
 # pin numbers
 class Pins:
     CS    = 8
@@ -40,7 +35,7 @@ DEV_INFO = [
 ]
 
 # command codes
-class Cmds:
+class Commands:
     SYS_RUN      = 0x01
     STANDBY      = 0x02
     SLEEP        = 0x03
@@ -103,30 +98,26 @@ class AutoLUT:
 # LUT engine status?
 ALL_LUTE_BUSY = 0xFFFF
 
-# TCon registers
-class DisplayRegisters:
-    BASE = 0x1000           # base address. register RW access for I80 only
+class Registers:
+    DBASE = 0x1000           # base address. register RW access for I80 only
 
-    LUT0EWHR  = BASE + 0x00  # LUT0 engine width height
-    LUT0XYR   = BASE + 0x40  # LUT0 XY
-    LUT0BADDR = BASE + 0x80  # LUT0 base address
-    LUT0MFN   = BASE + 0xC0  # LUT0 mode and frame number
-    LUT01AF   = BASE + 0x114 # LUT0/LUT1 active flag
+    LUT0EWHR  = DBASE + 0x00  # LUT0 engine width height
+    LUT0XYR   = DBASE + 0x40  # LUT0 XY
+    LUT0BADDR = DBASE + 0x80  # LUT0 base address
+    LUT0MFN   = DBASE + 0xC0  # LUT0 mode and frame number
+    LUT01AF   = DBASE + 0x114 # LUT0/LUT1 active flag
 
-    UP0SR     = BASE + 0x134  # update parameter0 setting
-    UP1SR     = BASE + 0x138  # update parameter1 setting
-    LUT0ABFRV = BASE + 0x13C  # LUT0 alpha blend and fill rectangle value
-    UPBBADDR  = BASE + 0x17C  # update buffer base address
-    LUT0IMXY  = BASE + 0x180  # LUT0 image buffer X/Y offset
-    LUTAFSR   = BASE + 0x224  # LUT status (status of all LUT engines)
+    UP0SR     = DBASE + 0x134  # update parameter0 setting
+    UP1SR     = DBASE + 0x138  # update parameter1 setting
+    LUT0ABFRV = DBASE + 0x13C  # LUT0 alpha blend and fill rectangle value
+    UPBBADDR  = DBASE + 0x17C  # update buffer base address
+    LUT0IMXY  = DBASE + 0x180  # LUT0 image buffer X/Y offset
+    LUTAFSR   = DBASE + 0x224  # LUT status (status of all LUT engines)
 
-    BGVR      = BASE + 0x250  # bitmap (1bpp) image color table
+    BGVR      = DBASE + 0x250  # bitmap (1bpp) image color table
 
-class SystemRegisters:
-    BASE = 0x0
-    I80CPCR = BASE + 0x04
+    I80CPCR = 0x04
 
-class MemConvRegisters:
-    BASE = 0x200
-    MCSR  = BASE + 0x0
-    LISAR = BASE + 0x8
+    MBASE = 0x200
+    MCSR  = MBASE + 0x0
+    LISAR = MBASE + 0x8
