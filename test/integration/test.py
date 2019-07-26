@@ -1,4 +1,7 @@
 
+from sys import path
+path += ['../../']
+
 from IT8951 import EPD
 
 def print_system_info(epd):
@@ -12,7 +15,9 @@ def print_system_info(epd):
 def main():
     print('Initializing EPD...')
     print()
-    epd = EPD(vcom=-2.03)
+    epd = EPD(vcom=-2.06)
+
+    print('VCOM set to', epd.get_vcom())
 
     print_system_info(epd)
 

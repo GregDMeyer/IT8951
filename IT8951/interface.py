@@ -1,10 +1,11 @@
 
 from .constants import Pins, Commands, Registers
+from .spi import SPI
 
 from time import sleep
 
-import spidev
 import RPi.GPIO as GPIO
+import numpy as np
 
 class EPD:
     '''
@@ -21,20 +22,18 @@ class EPD:
     def __init__(self, vcom=-1.5):
 
         # bus 0, device 0
-        self.spi = spidev.SpiDev(0, 0)
-        self.spi.lsbfirst = False
-        self.spi.mode = 0b00
+        self.spi = SPI()
 
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(Pins.CS, GPIO.OUT)
-        GPIO.setup(Pins.HRDY, GPIO.IN)
-        GPIO.setup(Pins.RESET, GPIO.OUT)
-        GPIO.output(Pins.CS, GPIO.HIGH)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+        # GPIO.setup(Pins.CS, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(Pins.HRDY, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(Pins.RESET, GPIO.OUT, initial=GPIO.HIGH)
 
         # reset
         GPIO.output(Pins.RESET, GPIO.LOW)
         sleep(0.1)
-        GPIO.output(Pins.RESET, GPIO.LOW)
+        GPIO.output(Pins.RESET, GPIO.HIGH)
 
         self.width  = None
         self.height = None
@@ -51,7 +50,7 @@ class EPD:
         self.set_vcom(vcom)
 
     def __del__(self):
-        self.spi.close()
+        GPIO.cleanup()
 
     def wait_for_ready(self):
         '''
@@ -60,27 +59,8 @@ class EPD:
         while GPIO.input(Pins.HRDY) == GPIO.LOW:
             sleep(0.01)
 
-    def _int_to_byte_list(self, val, length, byteorder):
+    def _int_to_byte_list(self, val, length=2, byteorder='big'):
         return [int(x) for x in val.to_bytes(length, byteorder)]
-
-    def send_spi(self, val, length=2, byteorder='big'):
-        '''
-        Send a value to the device using SPI
-
-        Parameters
-        ----------
-
-        val : int
-            The value to send
-
-        length : int
-            The number of bytes in value
-
-        byteorder : str
-            The byteorder with which to send value. 'big' or 'little'
-        '''
-        byte_list = self._int_to_byte_list(val, length, byteorder)
-        self.spi.writebytes2(byte_list)
 
     def write_cmd(self, cmd, *args):
         '''
@@ -95,32 +75,28 @@ class EPD:
         args : list(int), optional
             Arguments for the command
         '''
-        self.wait_for_ready()
-        GPIO.output(Pins.CS, GPIO.LOW)
-        self.send_spi(0x6000)  # preamble
-        self.wait_for_ready()
-        self.send_spi(cmd)
-        GPIO.output(Pins.CS, GPIO.HIGH)
+        # print('sending command {:x} with data {}'.format(cmd, str(args)))
+        #GPIO.output(Pins.CS, GPIO.LOW)
+        self.spi.write(0x6000, [cmd])  # preamble
+        #GPIO.output(Pins.CS, GPIO.HIGH)
 
         for arg in args:
-            self.write_data(self._int_to_byte_list(arg))
+            # print('arg:', arg)
+            self.write_data(arg)
 
-    def write_data(self, data):
+    def write_data(self, val):
         '''
-        Send the device a buffer of data
+        Send the device 16 bytes of data
 
         Parameters
         ----------
 
-        data : bytes
-            The data buffer
+        data : int
+            The data
         '''
-        self.wait_for_ready()
-        GPIO.output(Pins.CS, GPIO.LOW)
-        self.send_spi(0x0000)  # preamble
-        self.wait_for_ready()
-        self.spi.writebytes2(data)
-        GPIO.output(Pins.CS, GPIO.HIGH)
+        # GPIO.output(Pins.CS, GPIO.LOW)
+        self.spi.write(0x0000, [val])
+        # GPIO.output(Pins.CS, GPIO.HIGH)
 
     def read_data(self, n):
         '''
@@ -132,22 +108,17 @@ class EPD:
         n : int
             The number of 2-byte words to read
         '''
-        self.wait_for_ready()
-        GPIO.output(Pins.CS, GPIO.LOW)
-        self.send_spi(0x1000)  # preamble
-        self.wait_for_ready()
-        self.spi.read(2)  # I guess it sends two dummy bytes first?
-        self.wait_for_ready()
-        rtn = self.spi.read(2*n)
-        GPIO.output(Pins.CS, GPIO.HIGH)
+        # GPIO.output(Pins.CS, GPIO.LOW)
+        rtn = self.spi.read(0x1000, n)
+        # GPIO.output(Pins.CS, GPIO.HIGH)
         return rtn
 
     def read_int(self):
         '''
         Read a single 16 bit int from the device
         '''
-        byte_lst = self.read_data(1)
-        return (byte_lst[0] << 8) | byte_lst[1]
+        recv = self.read_data(1)[0]
+        return recv
 
     def run(self):
         self.write_cmd(Commands.SYS_RUN)
@@ -164,7 +135,7 @@ class EPD:
 
     def write_register(self, address, val):
         self.write_cmd(Commands.REG_WR, address)
-        self.write_data([val])
+        self.write_data(val)
 
     def mem_burst_read_trigger(self, address, count):
         # these are both 32 bits, so we need to split them
@@ -212,11 +183,12 @@ class EPD:
     def update_system_info(self):
         self.write_cmd(Commands.GET_DEV_INFO)
         data = self.read_data(20)
-        self.width  = (data[0] << 8) | data[1]
-        self.height = (data[2] << 8) | data[3]
-        self.img_buf_address = (data[6] << 24) | (data[7] << 16) | (data[4] << 8) | data[5]
-        self.firmware_version = ''.join([chr(x) for x in data[8:24]])
-        self.lut_version      = ''.join([chr(x) for x in data[24:]])
+        # print(' '.join(['{:x}'.format(x) for x in data]))
+        self.width  = data[0]
+        self.height = data[1]
+        self.img_buf_address = data[3] << 16 | data[2]
+        self.firmware_version = ''.join([chr(x>>8)+chr(x&0xFF) for x in data[4:12]])
+        self.lut_version      = ''.join([chr(x>>8)+chr(x&0xFF) for x in data[12:20]])
 
     def set_img_buf_base_addr(self, address):
         word0 = address >> 16
