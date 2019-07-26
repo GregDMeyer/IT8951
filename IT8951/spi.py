@@ -1,4 +1,5 @@
 
+import numpy as np
 import os
 import ctypes
 
@@ -18,8 +19,7 @@ class SPI:
         so.Read(preamble, count, buf)
         return buf
 
-    def write(self, preamble, vals):
-        buf = b''
-        for val in vals:
-            buf += val.to_bytes(2, 'little')
-        return so.Write(preamble, len(vals), buf)
+    def write(self, preamble, ary):
+        buf = np.ascontiguousarray(ary, dtype=np.uint16)
+        buf_p = buf.ctypes.data_as(c_ushort)
+        return so.Write(preamble, len(vals), buf_p)

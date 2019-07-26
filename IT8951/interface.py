@@ -52,16 +52,6 @@ class EPD:
     def __del__(self):
         GPIO.cleanup()
 
-    def wait_for_ready(self):
-        '''
-        Wait for the device ready pin to be high
-        '''
-        while GPIO.input(Pins.HRDY) == GPIO.LOW:
-            sleep(0.01)
-
-    def _int_to_byte_list(self, val, length=2, byteorder='big'):
-        return [int(x) for x in val.to_bytes(length, byteorder)]
-
     def write_cmd(self, cmd, *args):
         '''
         Send the device a command code
@@ -77,25 +67,25 @@ class EPD:
         '''
         # print('sending command {:x} with data {}'.format(cmd, str(args)))
         #GPIO.output(Pins.CS, GPIO.LOW)
-        self.spi.write(0x6000, [cmd])  # preamble
+        self.spi.write(0x6000, [cmd])  # 0x6000 is preamble
         #GPIO.output(Pins.CS, GPIO.HIGH)
 
         for arg in args:
             # print('arg:', arg)
             self.write_data(arg)
 
-    def write_data(self, val):
+    def write_data(self, ary):
         '''
-        Send the device 16 bytes of data
+        Send the device an array of data
 
         Parameters
         ----------
 
-        data : int
+        ary : array-like
             The data
         '''
         # GPIO.output(Pins.CS, GPIO.LOW)
-        self.spi.write(0x0000, [val])
+        self.spi.write(0x0000, ary)
         # GPIO.output(Pins.CS, GPIO.HIGH)
 
     def read_data(self, n):
@@ -135,7 +125,7 @@ class EPD:
 
     def write_register(self, address, val):
         self.write_cmd(Commands.REG_WR, address)
-        self.write_data(val)
+        self.write_data((val,))
 
     def mem_burst_read_trigger(self, address, count):
         # these are both 32 bits, so we need to split them
