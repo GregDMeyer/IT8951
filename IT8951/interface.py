@@ -7,6 +7,8 @@ from time import sleep
 import RPi.GPIO as GPIO
 import numpy as np
 
+# TODO: the high-level functions should probably be in their own class
+
 class EPD:
     '''
     An interface to the electronic paper display (EPD).
@@ -98,6 +100,7 @@ class EPD:
         n : int
             The number of 2-byte words to read
         '''
+        # TODO: add buf as argument?
         # GPIO.output(Pins.CS, GPIO.LOW)
         rtn = self.spi.read(0x1000, n)
         # GPIO.output(Pins.CS, GPIO.HIGH)
@@ -158,7 +161,8 @@ class EPD:
 
     def get_vcom(self):
         self.write_cmd(Commands.VCOM, 0)
-        return self.read_int()
+        vcom_int = self.read_int()
+        return -vcom_int/1000
 
     def set_vcom(self, vcom):
         self._validate_vcom(vcom)
@@ -173,7 +177,6 @@ class EPD:
     def update_system_info(self):
         self.write_cmd(Commands.GET_DEV_INFO)
         data = self.read_data(20)
-        # print(' '.join(['{:x}'.format(x) for x in data]))
         self.width  = data[0]
         self.height = data[1]
         self.img_buf_address = data[3] << 16 | data[2]
@@ -201,10 +204,14 @@ class EPD:
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
 
-    def host_area_packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy, dims):
+    # TODO: should define a version of this function that just uses load_img_start
+    def packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy=None, dims=None):
         self.set_img_bug_base_addr(self.img_buf_address)
-        self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
-        self.write_data(self.frame_buf_address)
+        if xy is None:
+            self.load_img_start(endian_type, pixel_format, rotate_mode)
+        else:
+            self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
+        self.write_data(self.frame_buf)
         self.load_img_end()
 
     def display_area(xy, dims, display_mode):

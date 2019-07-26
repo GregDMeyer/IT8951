@@ -5,35 +5,6 @@ class Pins:
     HRDY  = 24
     RESET = 17
 
-# struct format strings for various packed messages
-# the first of each tuple is the field name; the second
-# is the field type for use in the struct module
-# TODO: define methods for nicely packing/unpacking these
-
-LOAD_IMG_INFO = [
-    ('endian_type',            'H'),
-    ('pixel_format',           'H'),
-    ('rotate_mode',            'H'),
-    ('source_frame_buf_start', 'I'),
-    ('target_img_buf_start',   'I'),
-]
-
-AREA_IMG_INFO = [
-    ('X',      'H'),
-    ('Y',      'H'),
-    ('width',  'H'),
-    ('height', 'H')
-]
-
-DEV_INFO = [
-    ('panel_width',      'H'),
-    ('panel_height',     'H'),
-    ('img_buf_addr_L',   'H'),
-    ('img_buf_addr_H',   'H'),
-    ('firmware_version', '8H'),
-    ('LUT_version',      '8H')
-]
-
 # command codes
 class Commands:
     SYS_RUN      = 0x01
@@ -54,11 +25,6 @@ class Commands:
     GET_DEV_INFO = 0x302
     DPY_BUF_AREA = 0x037
     VCOM         = 0x039
-
-# honestly not sure what panel this is about
-# TODO: this probably can be deleted since we get info from device
-PANEL_WIDTH = 1024
-PANEL_HEIGHT = 758
 
 # rotation modes
 # TODO: make sure CW/CCW are correct
