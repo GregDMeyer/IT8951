@@ -29,7 +29,7 @@ class Commands:
 # rotation modes
 # TODO: make sure CW/CCW are correct
 class Rotate:
-    NO   = 0
+    NONE = 0
     CW   = 1
     CCW  = 3
     FLIP = 2  # 180 degree rotation

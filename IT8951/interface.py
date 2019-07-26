@@ -4,6 +4,7 @@ from .spi import SPI
 
 from time import sleep
 
+from PIL import Image
 import RPi.GPIO as GPIO
 import numpy as np
 
@@ -44,7 +45,8 @@ class EPD:
         self.lut_version      = None
         self.update_system_info()
 
-        self.frame_buf = np.ndarray((self.width, self.height), dtype=np.uint8)
+        self.frame_buf = Image.new('L', (self.width, self.height), 0xFF)
+        # TODO: should send INIT command probably
 
         # enable I80 packed mode
         self.write_register(Registers.I80CPCR, 0x1)
@@ -204,20 +206,21 @@ class EPD:
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
 
-    # TODO: should define a version of this function that just uses load_img_start
     def packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy=None, dims=None):
-        self.set_img_bug_base_addr(self.img_buf_address)
+        self.set_img_buf_base_addr(self.img_buf_address)
         if xy is None:
             self.load_img_start(endian_type, pixel_format, rotate_mode)
         else:
             self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
-        self.write_data(self.frame_buf)
+
+        self.spi.write_pixels(self.frame_buf.getdata())
+
         self.load_img_end()
 
-    def display_area(xy, dims, display_mode):
+    def display_area(self, xy, dims, display_mode):
         self.write_cmd(Commands.DPY_AREA, xy[0], xy[1], dims[0], dims[1], display_mode)
 
-    def display_area_1bpp(xy, dims, display_mode, background_gray, foreground_gray):
+    def display_area_1bpp(self, xy, dims, display_mode, background_gray, foreground_gray):
         # I'm confused---where in this function does the image get written?
 
         # set display to 1bpp mode
@@ -235,6 +238,6 @@ class EPD:
         old_value = self.read_register(Registers.UP1SR+2)
         self.write_register(Registers.UP1SR+2, old_value & ~(1<<2))
 
-    def display_area_buf(xy, dims, display_mode, display_buf_address):
+    def display_area_buf(self, xy, dims, display_mode, display_buf_address):
         self.write_cmd(Commands.DPY_BUF_AREA, xy[0], xy[1], dims[0], dims[1], display_mode,
                        display_buf_address & 0xFFFF, display_buf_address >> 16)
