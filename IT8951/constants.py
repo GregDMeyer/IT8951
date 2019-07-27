@@ -43,7 +43,7 @@ class PixelModes:
 
 # these waveform modes are described here:
 # http://www.waveshare.net/w/upload/c/c4/E-paper-mode-declaration.pdf
-class WaveformModes:
+class DisplayModes:
     INIT  = 0
     DU    = 1
     GC16  = 2

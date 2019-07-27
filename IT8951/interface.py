@@ -1,5 +1,6 @@
 
-from .constants import Pins, Commands, Registers
+from . import constants
+from .constants import Pins, Commands, Registers, DisplayModes
 from .spi import SPI
 
 from time import sleep
@@ -46,6 +47,8 @@ class EPD:
         self.update_system_info()
 
         self.frame_buf = Image.new('L', (self.width, self.height), 0xFF)
+        self.prev_frame = None  # for automatic partial update
+
         # TODO: should send INIT command probably
 
         # enable I80 packed mode
@@ -201,7 +204,7 @@ class EPD:
 
     def load_img_area_start(self, endian_type, pixel_format, rotate_mode, xy, dims):
         arg0 = (endian_type << 8) | (pixel_format << 4) | rotate_mode
-        self.write_cmd(Commands.LD_IMG, arg0, xy[0], xy[1], dims[0], dims[1])
+        self.write_cmd(Commands.LD_IMG_AREA, arg0, xy[0], xy[1], dims[0], dims[1])
 
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
@@ -213,7 +216,19 @@ class EPD:
         else:
             self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
 
-        self.spi.write_pixels(self.frame_buf.getdata())
+        if xy is None:
+            self.spi.write_pixels(self.frame_buf.getdata())
+        else:
+            buf = np.array(self.frame_buf.getdata(), dtype=np.uint8).reshape(self.height, self.width)
+
+            xmin = xy[0]
+            xmax = xy[0] + dims[0]
+            ymin = xy[1]
+            ymax = xy[1] + dims[1]
+
+            partial_buf = buf[ymin:ymax, xmin:xmax].flatten() # extract relevant portion
+
+            self.spi.write_pixels(partial_buf)
 
         self.load_img_end()
 
@@ -221,7 +236,6 @@ class EPD:
         self.write_cmd(Commands.DPY_AREA, xy[0], xy[1], dims[0], dims[1], display_mode)
 
     def display_area_1bpp(self, xy, dims, display_mode, background_gray, foreground_gray):
-        # I'm confused---where in this function does the image get written?
 
         # set display to 1bpp mode
         old_value = self.read_register(Registers.UP1SR+2)
@@ -241,3 +255,92 @@ class EPD:
     def display_area_buf(self, xy, dims, display_mode, display_buf_address):
         self.write_cmd(Commands.DPY_BUF_AREA, xy[0], xy[1], dims[0], dims[1], display_mode,
                        display_buf_address & 0xFFFF, display_buf_address >> 16)
+
+    def write_full(self, mode):
+        '''
+        Write the full image to the device, and display it using mode
+        '''
+
+        # send image to controller
+        self.wait_display_ready()
+        self.packed_pixel_write(
+            constants.EndianTypes.BIG,
+            constants.PixelModes.M_8BPP,
+            constants.Rotate.NONE,
+        )
+
+        # display sent image
+        # TODO: should not have area here?
+        self.display_area(
+            (0, 0),
+            (self.width, self.height),
+            mode
+        )
+
+        self.prev_frame = np.array(self.frame_buf).reshape(self.height, self.width)
+
+    # TODO: write unit test for this function
+    @classmethod
+    def _compute_diff_box(cls, a, b):
+        '''
+        Find the four coordinates giving the bounding box of differences between 2D
+        arrays a and b.
+        '''
+        y_idxs, x_idxs = np.nonzero(a != b)
+
+        # this one is not sorted
+        minx = np.amin(x_idxs)
+        maxx = np.amax(x_idxs)+1
+
+        # this one is sorted
+        miny = y_idxs[0]
+        maxy = y_idxs[-1]+1
+
+        return (minx, miny, maxx, maxy)
+
+    def write_partial(self, mode):
+        '''
+        Write only the rectangle bounding the pixels of the image that have changed
+        since the last call to write_full or write_partial
+        '''
+
+        if self.prev_frame is None:  # first call since initialization
+            self.write_full(self, mode)
+
+        # compute diff
+        frame_buf_np = np.array(self.frame_buf).reshape(self.height, self.width)
+        diff_box = self._compute_diff_box(frame_buf_np, self.prev_frame)
+        self.prev_frame = frame_buf_np
+
+        # x dimension of dims must be divisible by 2
+        xdim = diff_box[2]-diff_box[0]
+        xdim += xdim%2
+
+        xy = (diff_box[0], diff_box[1])
+        dims = (xdim, diff_box[3]-diff_box[1])
+
+        # send image to controller
+        self.wait_display_ready()
+        self.packed_pixel_write(
+            constants.EndianTypes.BIG,
+            constants.PixelModes.M_8BPP,
+            constants.Rotate.NONE,
+            xy,
+            dims
+        )
+
+        # display sent image
+        self.display_area(
+            xy,
+            dims,
+            mode
+        )
+
+
+    def clear(self):
+        '''
+        Clear display, device image buffer, and frame buffer (e.g. at startup)
+        '''
+        # set frame buffer to all white
+        self.frame_buf.paste(0xFF, box=(0, 0, self.width, self.height))
+        self.write_full(DisplayModes.INIT)
