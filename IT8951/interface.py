@@ -219,16 +219,13 @@ class EPD:
         if xy is None:
             self.spi.write_pixels(self.frame_buf.getdata())
         else:
-            buf = np.array(self.frame_buf.getdata(), dtype=np.uint8).reshape(self.height, self.width)
-
             xmin = xy[0]
             xmax = xy[0] + dims[0]
             ymin = xy[1]
             ymax = xy[1] + dims[1]
 
-            partial_buf = buf[ymin:ymax, xmin:xmax].flatten() # extract relevant portion
-
-            self.spi.write_pixels(partial_buf)
+            partial_buf = self.frame_buf.crop((xmin, ymin, xmax, ymax))
+            self.spi.write_pixels(partial_buf.getdata())
 
         self.load_img_end()
 
