@@ -288,6 +288,9 @@ class EPD:
         '''
         y_idxs, x_idxs = np.nonzero(a != b)
 
+        if y_idxs.size == 0:
+            return (0,0,0,0)
+
         # this one is not sorted
         minx = np.amin(x_idxs)
         maxx = np.amax(x_idxs)+1
@@ -295,6 +298,10 @@ class EPD:
         # this one is sorted
         miny = y_idxs[0]
         maxy = y_idxs[-1]+1
+
+        # make sure the x values are rounded to nearest even number
+        minx &= ~1
+        maxx += maxx%2
 
         return (minx, miny, maxx, maxy)
 
@@ -312,12 +319,11 @@ class EPD:
         diff_box = self._compute_diff_box(frame_buf_np, self.prev_frame)
         self.prev_frame = frame_buf_np
 
-        # x dimension of dims must be divisible by 2
-        xdim = diff_box[2]-diff_box[0]
-        xdim += xdim%2
-
         xy = (diff_box[0], diff_box[1])
-        dims = (xdim, diff_box[3]-diff_box[1])
+        dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
+
+        if dims[0] == 0 or dims[1] == 0:
+            return
 
         # send image to controller
         self.wait_display_ready()
