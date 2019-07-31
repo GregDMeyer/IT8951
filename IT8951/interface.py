@@ -5,7 +5,7 @@ from .spi import SPI
 
 from time import sleep
 
-from PIL import Image
+from PIL import Image, ImageChops
 import RPi.GPIO as GPIO
 import numpy as np
 
@@ -225,6 +225,7 @@ class EPD:
             ymax = xy[1] + dims[1]
 
             partial_buf = self.frame_buf.crop((xmin, ymin, xmax, ymax))
+
             self.spi.write_pixels(partial_buf.getdata())
 
         self.load_img_end()
@@ -274,32 +275,20 @@ class EPD:
             mode
         )
 
-        self.prev_frame = np.array(self.frame_buf).reshape(self.height, self.width)
+        self.prev_frame = self.frame_buf.copy()
 
     # TODO: write unit test for this function
     @classmethod
     def _compute_diff_box(cls, a, b):
         '''
-        Find the four coordinates giving the bounding box of differences between 2D
-        arrays a and b.
+        Find the four coordinates giving the bounding box of differences between
+        images a and b
         '''
-        y_idxs, x_idxs = np.nonzero(a != b)
-
-        if y_idxs.size == 0:
-            return (0,0,0,0)
-
-        # this one is not sorted
-        minx = np.amin(x_idxs)
-        maxx = np.amax(x_idxs)+1
-
-        # this one is sorted
-        miny = y_idxs[0]
-        maxy = y_idxs[-1]+1
-
-        # make sure the x values are rounded to nearest even number
-        minx &= ~1
+        minx, miny, maxx, maxy = ImageChops.difference(a, b).getbbox()
+        minx -= minx%2
         maxx += maxx%2
-
+        miny -= miny%2
+        maxy += maxy%2
         return (minx, miny, maxx, maxy)
 
     def write_partial(self, mode):
@@ -309,20 +298,21 @@ class EPD:
         '''
 
         if self.prev_frame is None:  # first call since initialization
-            self.write_full(self, mode)
+            self.write_full(mode)
 
         # compute diff
-        frame_buf_np = np.array(self.frame_buf).reshape(self.height, self.width)
-        diff_box = self._compute_diff_box(frame_buf_np, self.prev_frame)
-        self.prev_frame = frame_buf_np
+        diff_box = self._compute_diff_box(self.frame_buf, self.prev_frame)
+        self.prev_frame = self.frame_buf.copy()
+
+        if diff_box is None:
+            return
 
         xy = (diff_box[0], diff_box[1])
         dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
 
-        if dims[0] == 0 or dims[1] == 0:
-            return
-
         # send image to controller
+        # TODO: should use pixel mode that corresponds with display mode
+        # e.g. 1bpp for DU
         self.wait_display_ready()
         self.packed_pixel_write(
             constants.EndianTypes.BIG,
@@ -338,7 +328,6 @@ class EPD:
             dims,
             mode
         )
-
 
     def clear(self):
         '''
