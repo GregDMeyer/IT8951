@@ -56,9 +56,9 @@ class EPD:
         # keep track of what has changed since the last grayscale update
         # so that we make sure we clear any black/white intermediates
         # start out with no changes
-        self.gray_changes = Image.new('L', self.frame_buf.size, 0x00)
+        self.gray_change_bbox = None
 
-        # TODO: should send INIT command probably
+        # TODO: should send INIT command?
 
         # enable I80 packed mode
         self.write_register(Registers.I80CPCR, 0x1)
@@ -325,38 +325,63 @@ class EPD:
         )
 
         if mode == DisplayModes.DU:
-            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
-            self.gray_changes = ImageChops.add(self.gray_changes, diff)
+            diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+            self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
         else:
-            # reset changes to zero
-            self.gray_changes.paste(0x00, box=(0, 0, self.gray_changes.size[0], self.gray_changes.size[1]))
+            self.gray_change_bbox = None
 
         self.prev_frame = self.frame_buf.copy()
 
-    @staticmethod
-    def _compute_diff_box(diff, round_to=2):
+    @classmethod
+    def _compute_diff_box(cls, a, b, round_to=2):
         '''
-        Find the four coordinates giving the bounding box of nonzero elements of diff,
+        Find the four coordinates giving the bounding box of differences between a and b
         making sure they are divisible by round_to
 
         Parameters
         ----------
 
-        diff : PIL.Image
-            Generally the differences between two images, as returned by ImageChops.difference
+        a : PIL.Image
+            The first image
+
+        b : PIL.Image
+            The second image
 
         round_to : int
             The multiple to align the bbox to
         '''
-        box = diff.getbbox()
+        box = ImageChops.difference(a, b).getbbox()
         if box is None:
             return None
+        return cls._round_bbox(box, round_to)
 
+    @staticmethod
+    def _round_bbox(box, round_to=4):
+        '''
+        Round a bounding box so the edges are divisible by round_to
+        '''
         minx, miny, maxx, maxy = box
         minx -= minx%round_to
-        maxx += round_to - maxx%round_to
+        maxx += round_to-1 - (maxx-1)%round_to
         miny -= miny%round_to
-        maxy += round_to - maxy%round_to
+        maxy += round_to-1 - (maxy-1)%round_to
+        return (minx, miny, maxx, maxy)
+
+    @staticmethod
+    def _merge_bbox(a, b):
+        '''
+        Return a bounding box that contains both bboxes a and b
+        '''
+        if a is None:
+            return b
+
+        if b is None:
+            return a
+
+        minx = min(a[0], b[0])
+        miny = min(a[1], b[1])
+        maxx = max(a[2], b[2])
+        maxy = max(a[3], b[3])
         return (minx, miny, maxx, maxy)
 
     def write_partial(self, mode):
@@ -368,18 +393,14 @@ class EPD:
         if self.prev_frame is None:  # first call since initialization
             self.write_full(mode)
 
-        # compute diff
-        if mode == DisplayModes.DU:
-            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
-            diff_box = self._compute_diff_box(diff, round_to=4)
-            self.gray_changes = ImageChops.add(self.gray_changes, diff)
-        else:
-            # add most recent changes
-            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
-            self.gray_changes = ImageChops.add(self.gray_changes, diff)
-            diff_box = self._compute_diff_box(self.gray_changes, round_to=4)
-            # reset grayscale changes to zero
-            self.gray_changes.paste(0x00, box=(0, 0, self.gray_changes.size[0], self.gray_changes.size[1]))
+        # compute diff for this frame
+        diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+        self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
+
+        # reset grayscale changes to zero
+        if mode != DisplayModes.DU:
+            diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
+            self.gray_change_bbox = None
 
         self.prev_frame = self.frame_buf.copy()
 
