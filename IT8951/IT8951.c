@@ -56,8 +56,8 @@ void WritePackedPixelBytes(uint32_t count, uint8_t* pixels)
 
     LCDWaitForReady();
 
-    spi_transfer(pixels[i]);
     spi_transfer(pixels[i+1]);
+    spi_transfer(pixels[i]);
 
     bcm2835_gpio_write(CS,HIGH);
   }

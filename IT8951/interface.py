@@ -1,6 +1,6 @@
 
 from . import constants
-from .constants import Pins, Commands, Registers, DisplayModes
+from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
 from .spi import SPI
 
 from time import sleep
@@ -47,7 +47,16 @@ class EPD:
         self.update_system_info()
 
         self.frame_buf = Image.new('L', (self.width, self.height), 0xFF)
-        self.prev_frame = None  # for automatic partial update
+
+        # keep track of what we have updated,
+        # so that we can automatically do partial updates of only the
+        # relevant portions of the display
+        self.prev_frame = None
+
+        # keep track of what has changed since the last grayscale update
+        # so that we make sure we clear any black/white intermediates
+        # start out with no changes
+        self.gray_changes = Image.new('L', self.frame_buf.size, 0x00)
 
         # TODO: should send INIT command probably
 
@@ -209,7 +218,7 @@ class EPD:
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
 
-    def packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy=None, dims=None):
+    def packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy=None, dims=None, flatten=False):
         self.set_img_buf_base_addr(self.img_buf_address)
         if xy is None:
             self.load_img_start(endian_type, pixel_format, rotate_mode)
@@ -217,7 +226,7 @@ class EPD:
             self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
 
         if xy is None:
-            self.spi.write_pixels(self.frame_buf.getdata())
+            buf = self.frame_buf.getdata()
         else:
             xmin = xy[0]
             xmax = xy[0] + dims[0]
@@ -226,9 +235,49 @@ class EPD:
 
             partial_buf = self.frame_buf.crop((xmin, ymin, xmax, ymax))
 
-            self.spi.write_pixels(partial_buf.getdata())
+            if flatten: # convert all pixels to black or white
+                partial_buf = partial_buf.point(lambda x: 0xFF if x > 0x80 else 0x00)
+
+            buf = partial_buf.getdata()
+
+        buf = self._pack_pixels(buf, pixel_format)
+        self.spi.write_pixels(buf)
 
         self.load_img_end()
+
+    @staticmethod
+    def _pack_pixels(buf, pixel_format):
+        '''
+        Take a buffer where each byte represents a pixel, and pack it
+        into 16-bit words according to pixel_format.
+        '''
+        buf = np.array(buf, dtype=np.ubyte)
+
+        if pixel_format == PixelModes.M_8BPP:
+            rtn = np.zeros((buf.size//2,), dtype=np.uint16)
+            rtn |= buf[1::2]
+            rtn <<= 8
+            rtn |= buf[::2]
+
+        elif pixel_format == PixelModes.M_2BPP:
+            rtn = np.zeros((buf.size//8,), dtype=np.uint16)
+            for i in range(7, -1, -1):
+                rtn <<= 2
+                rtn |= buf[i::8] >> 6
+
+        elif pixel_format == PixelModes.M_3BPP:
+            rtn = np.zeros((buf.size//4,), dtype=np.uint16)
+            for i in range(3, -1, -1):
+                rtn <<= 4
+                rtn |= (buf[i::4] & 0xFE) >> 4
+
+        elif pixel_format == PixelModes.M_4BPP:
+            rtn = np.zeros((buf.size//4,), dtype=np.uint16)
+            for i in range(3, -1, -1):
+                rtn <<= 4
+                rtn |= buf[i::4] >> 4
+
+        return rtn
 
     def display_area(self, xy, dims, display_mode):
         self.write_cmd(Commands.DPY_AREA, xy[0], xy[1], dims[0], dims[1], display_mode)
@@ -262,8 +311,8 @@ class EPD:
         # send image to controller
         self.wait_display_ready()
         self.packed_pixel_write(
-            constants.EndianTypes.BIG,
-            constants.PixelModes.M_8BPP,
+            constants.EndianTypes.LITTLE,
+            constants.PixelModes.M_4BPP,
             constants.Rotate.NONE,
         )
 
@@ -275,20 +324,39 @@ class EPD:
             mode
         )
 
+        if mode == DisplayModes.DU:
+            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
+            self.gray_changes = ImageChops.add(self.gray_changes, diff)
+        else:
+            # reset changes to zero
+            self.gray_changes.paste(0x00, box=(0, 0, self.gray_changes.size[0], self.gray_changes.size[1]))
+
         self.prev_frame = self.frame_buf.copy()
 
-    # TODO: write unit test for this function
-    @classmethod
-    def _compute_diff_box(cls, a, b):
+    @staticmethod
+    def _compute_diff_box(diff, round_to=2):
         '''
-        Find the four coordinates giving the bounding box of differences between
-        images a and b
+        Find the four coordinates giving the bounding box of nonzero elements of diff,
+        making sure they are divisible by round_to
+
+        Parameters
+        ----------
+
+        diff : PIL.Image
+            Generally the differences between two images, as returned by ImageChops.difference
+
+        round_to : int
+            The multiple to align the bbox to
         '''
-        minx, miny, maxx, maxy = ImageChops.difference(a, b).getbbox()
-        minx -= minx%2
-        maxx += maxx%2
-        miny -= miny%2
-        maxy += maxy%2
+        box = diff.getbbox()
+        if box is None:
+            return None
+
+        minx, miny, maxx, maxy = box
+        minx -= minx%round_to
+        maxx += round_to - maxx%round_to
+        miny -= miny%round_to
+        maxy += round_to - maxy%round_to
         return (minx, miny, maxx, maxy)
 
     def write_partial(self, mode):
@@ -301,7 +369,18 @@ class EPD:
             self.write_full(mode)
 
         # compute diff
-        diff_box = self._compute_diff_box(self.frame_buf, self.prev_frame)
+        if mode == DisplayModes.DU:
+            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
+            diff_box = self._compute_diff_box(diff, round_to=4)
+            self.gray_changes = ImageChops.add(self.gray_changes, diff)
+        else:
+            # add most recent changes
+            diff = ImageChops.difference(self.prev_frame, self.frame_buf)
+            self.gray_changes = ImageChops.add(self.gray_changes, diff)
+            diff_box = self._compute_diff_box(self.gray_changes, round_to=4)
+            # reset grayscale changes to zero
+            self.gray_changes.paste(0x00, box=(0, 0, self.gray_changes.size[0], self.gray_changes.size[1]))
+
         self.prev_frame = self.frame_buf.copy()
 
         if diff_box is None:
@@ -311,15 +390,14 @@ class EPD:
         dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
 
         # send image to controller
-        # TODO: should use pixel mode that corresponds with display mode
-        # e.g. 1bpp for DU
         self.wait_display_ready()
         self.packed_pixel_write(
-            constants.EndianTypes.BIG,
-            constants.PixelModes.M_8BPP,
+            constants.EndianTypes.LITTLE,
+            constants.PixelModes.M_4BPP,
             constants.Rotate.NONE,
             xy,
-            dims
+            dims,
+            flatten=(mode==DisplayModes.DU)
         )
 
         # display sent image

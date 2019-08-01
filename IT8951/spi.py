@@ -25,6 +25,6 @@ class SPI:
         so.Write(preamble, len(buf), buf_p)
 
     def write_pixels(self, pixbuf):
-        buf = np.ascontiguousarray(pixbuf, dtype=np.uint8)
+        buf = np.ascontiguousarray(pixbuf, dtype=np.uint16)
         buf_p = buf.ctypes.data_as(ctypes.POINTER(ctypes.c_char))
-        so.WritePackedPixelBytes(len(buf), buf_p)
+        so.WritePackedPixelBytes(len(buf)*2, buf_p)
