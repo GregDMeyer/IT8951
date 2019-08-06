@@ -5,9 +5,11 @@ from time import sleep
 
 from sys import path
 path += ['../../']
-from IT8951 import EPD, constants
+from IT8951 import EPD, AutoEPDDisplay, constants
 
-def print_system_info(epd):
+def print_system_info(display):
+    epd = display.epd
+
     print('System info:')
     print('  display size: {}x{}'.format(epd.width, epd.height))
     print('  img buffer address: {:X}'.format(epd.img_buf_address))
@@ -15,37 +17,37 @@ def print_system_info(epd):
     print('  LUT version: {}'.format(epd.lut_version))
     print()
 
-def clear_display(epd):
+def clear_display(display):
     print('Clearing display...')
-    epd.clear()
+    display.clear()
 
-def display_gradient(epd):
+def display_gradient(display):
     print('Displaying gradient...')
 
     # set frame buffer to gradient
     for i in range(16):
-        epd.frame_buf.paste(i*0x10, box=(i*epd.width//16, 0, (i+1)*epd.width//16, epd.height))
+        display.frame_buf.paste(i*0x10, box=(i*display.width//16, 0, (i+1)*display.width//16, display.height))
 
     # update display
-    epd.write_full(constants.DisplayModes.GC16)
+    display.write_full(constants.DisplayModes.GC16)
 
-def display_image_8bpp(epd):
+def display_image_8bpp(display):
     img_path = 'images/sleeping_penguin.png'
     print('Displaying "{}"...'.format(img_path))
 
     # clearing image to white
-    epd.frame_buf.paste(0xFF, box=(0, 0, epd.width, epd.height))
+    display.frame_buf.paste(0xFF, box=(0, 0, display.width, display.height))
 
     img = Image.open(img_path)
 
     # TODO: this should be built-in
-    dims = (epd.width, epd.height)
+    dims = (display.width, display.height)
 
     img.thumbnail(dims)
     paste_coords = [dims[i] - img.size[i] for i in (0,1)]  # align image with bottom of display
-    epd.frame_buf.paste(img, paste_coords)
+    display.frame_buf.paste(img, paste_coords)
 
-    epd.write_full(constants.DisplayModes.GC16)
+    display.write_full(constants.DisplayModes.GC16)
 
 def place_text(img, text, x_offset=0, y_offset=0):
     '''
@@ -65,25 +67,25 @@ def place_text(img, text, x_offset=0, y_offset=0):
 
     draw.text((draw_x, draw_y), text, font=font)
 
-def partial_update(epd):
+def partial_update(display):
     print('Starting partial update...')
 
     # clear image to white
-    epd.frame_buf.paste(0xFF, box=(0, 0, epd.width, epd.height))
+    display.frame_buf.paste(0xFF, box=(0, 0, display.width, display.height))
 
     print('  writing full...')
-    place_text(epd.frame_buf, 'partial', x_offset=-200)
-    epd.write_full(constants.DisplayModes.GC16)
+    place_text(display.frame_buf, 'partial', x_offset=-200)
+    display.write_full(constants.DisplayModes.GC16)
 
     # TODO: should use 1bpp for partial text update
     print('  writing partial...')
-    place_text(epd.frame_buf, 'update', x_offset=+200)
-    epd.write_partial(constants.DisplayModes.DU)
+    place_text(display.frame_buf, 'update', x_offset=+200)
+    display.write_partial(constants.DisplayModes.DU)
 
 def main():
     print('Initializing EPD...')
-    epd = EPD(vcom=-2.06)
-    print('VCOM set to', epd.get_vcom())
+    display = AutoEPDDisplay(vcom=-2.06)
+    print('VCOM set to', display.epd.get_vcom())
 
     tests = [
         print_system_info,
@@ -94,7 +96,7 @@ def main():
     ]
 
     for t in tests:
-        t(epd)
+        t(display)
         sleep(1)
 
     print('Done!')

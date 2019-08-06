@@ -1,0 +1,168 @@
+
+from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
+from .interface import EPD
+
+from PIL import Image, ImageChops
+
+class AutoDisplay:
+    '''
+    This class tracks changes to its frame_buf attribute, and automatically
+    updates only the portions of the display that need to be updated
+
+    Updates are done by calling the update() method, which derived classes should
+    implement.
+    '''
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+        self.frame_buf = Image.new('L', (width, height), 0xFF)
+
+        # keep track of what we have updated,
+        # so that we can automatically do partial updates of only the
+        # relevant portions of the display
+        self.prev_frame = None
+
+        # keep track of what has changed since the last grayscale update
+        # so that we make sure we clear any black/white intermediates
+        # start out with no changes
+        self.gray_change_bbox = None
+
+    def write_full(self, mode):
+        '''
+        Write the full image to the device, and display it using mode
+        '''
+
+        self.update(self.frame_buf.getdata(), (0,0), (self.width, self.height), mode)
+
+        if mode == DisplayModes.DU:
+            diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+            self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
+        else:
+            self.gray_change_bbox = None
+
+        self.prev_frame = self.frame_buf.copy()
+
+    def write_partial(self, mode):
+        '''
+        Write only the rectangle bounding the pixels of the image that have changed
+        since the last call to write_full or write_partial
+        '''
+
+        if self.prev_frame is None:  # first call since initialization
+            self.write_full(mode)
+
+        # compute diff for this frame
+        # TODO: should not have round_to in this class
+        diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+        self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
+
+        # reset grayscale changes to zero
+        if mode != DisplayModes.DU:
+            diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
+            self.gray_change_bbox = None
+
+        self.prev_frame = self.frame_buf.copy()
+
+        # nothing to do
+        if diff_box is None:
+            return
+
+        buf = self.frame_buf.crop(diff_box)
+
+        xy = (diff_box[0], diff_box[1])
+        dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
+
+        self.update(buf.getdata(), xy, dims, mode)
+
+    def clear(self):
+        '''
+        Clear display, device image buffer, and frame buffer (e.g. at startup)
+        '''
+        # set frame buffer to all white
+        self.frame_buf.paste(0xFF, box=(0, 0, self.epd.width, self.epd.height))
+        self.write_full(DisplayModes.INIT)
+
+    @classmethod
+    def _compute_diff_box(cls, a, b, round_to=2):
+        '''
+        Find the four coordinates giving the bounding box of differences between a and b
+        making sure they are divisible by round_to
+
+        Parameters
+        ----------
+
+        a : PIL.Image
+            The first image
+
+        b : PIL.Image
+            The second image
+
+        round_to : int
+            The multiple to align the bbox to
+        '''
+        box = ImageChops.difference(a, b).getbbox()
+        if box is None:
+            return None
+        return cls._round_bbox(box, round_to)
+
+    @staticmethod
+    def _round_bbox(box, round_to=4):
+        '''
+        Round a bounding box so the edges are divisible by round_to
+        '''
+        minx, miny, maxx, maxy = box
+        minx -= minx%round_to
+        maxx += round_to-1 - (maxx-1)%round_to
+        miny -= miny%round_to
+        maxy += round_to-1 - (maxy-1)%round_to
+        return (minx, miny, maxx, maxy)
+
+    @staticmethod
+    def _merge_bbox(a, b):
+        '''
+        Return a bounding box that contains both bboxes a and b
+        '''
+        if a is None:
+            return b
+
+        if b is None:
+            return a
+
+        minx = min(a[0], b[0])
+        miny = min(a[1], b[1])
+        maxx = max(a[2], b[2])
+        maxy = max(a[3], b[3])
+        return (minx, miny, maxx, maxy)
+
+    def update(self, data, xy, dims, mode):
+        raise NotImplementedError
+
+
+class AutoEPDDisplay(AutoDisplay):
+    '''
+    This class initializes the EPD, and uses it to display the updates
+    '''
+
+    def __init__(self, vcom=-2.06):
+        self.epd = EPD(vcom=vcom)
+        AutoDisplay.__init__(self, self.epd.width, self.epd.height)
+
+    def update(self, data, xy, dims, mode):
+
+        # send image to controller
+        self.epd.wait_display_ready()
+        self.epd.packed_pixel_write(
+            data,
+            xy=xy,
+            dims=dims,
+            flatten=(mode==DisplayModes.DU)
+        )
+
+        # display sent image
+        self.epd.display_area(
+            xy,
+            dims,
+            mode
+        )

@@ -5,11 +5,8 @@ from .spi import SPI
 
 from time import sleep
 
-from PIL import Image, ImageChops
 import RPi.GPIO as GPIO
 import numpy as np
-
-# TODO: the high-level functions should probably be in their own class
 
 class EPD:
     '''
@@ -45,18 +42,6 @@ class EPD:
         self.firmware_version = None
         self.lut_version      = None
         self.update_system_info()
-
-        self.frame_buf = Image.new('L', (self.width, self.height), 0xFF)
-
-        # keep track of what we have updated,
-        # so that we can automatically do partial updates of only the
-        # relevant portions of the display
-        self.prev_frame = None
-
-        # keep track of what has changed since the last grayscale update
-        # so that we make sure we clear any black/white intermediates
-        # start out with no changes
-        self.gray_change_bbox = None
 
         # TODO: should send INIT command?
 
@@ -218,27 +203,18 @@ class EPD:
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
 
-    def packed_pixel_write(self, endian_type, pixel_format, rotate_mode, xy=None, dims=None, flatten=False):
+    def packed_pixel_write(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None, flatten=False):
+        endian_type = constants.EndianTypes.LITTLE
+        pixel_format = constants.PixelModes.M_4BPP
+
         self.set_img_buf_base_addr(self.img_buf_address)
         if xy is None:
             self.load_img_start(endian_type, pixel_format, rotate_mode)
         else:
             self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
 
-        if xy is None:
-            buf = self.frame_buf.getdata()
-        else:
-            xmin = xy[0]
-            xmax = xy[0] + dims[0]
-            ymin = xy[1]
-            ymax = xy[1] + dims[1]
-
-            partial_buf = self.frame_buf.crop((xmin, ymin, xmax, ymax))
-
-            if flatten: # convert all pixels to black or white
-                partial_buf = partial_buf.point(lambda x: 0xFF if x > 0x80 else 0x00)
-
-            buf = partial_buf.getdata()
+        if flatten:
+            buf = np.fromiter(map(lambda b: 0x00 if b < 0x80 else 0xFF, buf), dtype=np.ubyte, count=len(buf))
 
         buf = self._pack_pixels(buf, pixel_format)
         self.spi.write_pixels(buf)
@@ -302,136 +278,3 @@ class EPD:
     def display_area_buf(self, xy, dims, display_mode, display_buf_address):
         self.write_cmd(Commands.DPY_BUF_AREA, xy[0], xy[1], dims[0], dims[1], display_mode,
                        display_buf_address & 0xFFFF, display_buf_address >> 16)
-
-    def write_full(self, mode):
-        '''
-        Write the full image to the device, and display it using mode
-        '''
-
-        # send image to controller
-        self.wait_display_ready()
-        self.packed_pixel_write(
-            constants.EndianTypes.LITTLE,
-            constants.PixelModes.M_4BPP,
-            constants.Rotate.NONE,
-        )
-
-        # display sent image
-        # TODO: should not have area here?
-        self.display_area(
-            (0, 0),
-            (self.width, self.height),
-            mode
-        )
-
-        if mode == DisplayModes.DU:
-            diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
-            self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
-        else:
-            self.gray_change_bbox = None
-
-        self.prev_frame = self.frame_buf.copy()
-
-    @classmethod
-    def _compute_diff_box(cls, a, b, round_to=2):
-        '''
-        Find the four coordinates giving the bounding box of differences between a and b
-        making sure they are divisible by round_to
-
-        Parameters
-        ----------
-
-        a : PIL.Image
-            The first image
-
-        b : PIL.Image
-            The second image
-
-        round_to : int
-            The multiple to align the bbox to
-        '''
-        box = ImageChops.difference(a, b).getbbox()
-        if box is None:
-            return None
-        return cls._round_bbox(box, round_to)
-
-    @staticmethod
-    def _round_bbox(box, round_to=4):
-        '''
-        Round a bounding box so the edges are divisible by round_to
-        '''
-        minx, miny, maxx, maxy = box
-        minx -= minx%round_to
-        maxx += round_to-1 - (maxx-1)%round_to
-        miny -= miny%round_to
-        maxy += round_to-1 - (maxy-1)%round_to
-        return (minx, miny, maxx, maxy)
-
-    @staticmethod
-    def _merge_bbox(a, b):
-        '''
-        Return a bounding box that contains both bboxes a and b
-        '''
-        if a is None:
-            return b
-
-        if b is None:
-            return a
-
-        minx = min(a[0], b[0])
-        miny = min(a[1], b[1])
-        maxx = max(a[2], b[2])
-        maxy = max(a[3], b[3])
-        return (minx, miny, maxx, maxy)
-
-    def write_partial(self, mode):
-        '''
-        Write only the rectangle bounding the pixels of the image that have changed
-        since the last call to write_full or write_partial
-        '''
-
-        if self.prev_frame is None:  # first call since initialization
-            self.write_full(mode)
-
-        # compute diff for this frame
-        diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
-        self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
-
-        # reset grayscale changes to zero
-        if mode != DisplayModes.DU:
-            diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
-            self.gray_change_bbox = None
-
-        self.prev_frame = self.frame_buf.copy()
-
-        if diff_box is None:
-            return
-
-        xy = (diff_box[0], diff_box[1])
-        dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
-
-        # send image to controller
-        self.wait_display_ready()
-        self.packed_pixel_write(
-            constants.EndianTypes.LITTLE,
-            constants.PixelModes.M_4BPP,
-            constants.Rotate.NONE,
-            xy,
-            dims,
-            flatten=(mode==DisplayModes.DU)
-        )
-
-        # display sent image
-        self.display_area(
-            xy,
-            dims,
-            mode
-        )
-
-    def clear(self):
-        '''
-        Clear display, device image buffer, and frame buffer (e.g. at startup)
-        '''
-        # set frame buffer to all white
-        self.frame_buf.paste(0xFF, box=(0, 0, self.width, self.height))
-        self.write_full(DisplayModes.INIT)

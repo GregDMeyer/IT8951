@@ -6,7 +6,7 @@ import io
 
 from sys import path
 path += ['../../']
-from IT8951 import EPD, constants
+from IT8951 import EPD, AutoEPDDisplay, constants
 
 def place_text(img, text, x_offset=0, y_offset=0):
     '''
@@ -38,21 +38,22 @@ def profile_func(f, *args, sortby='cumulative', **kwargs):
 
 def main():
     print('Initializing...')
-    epd = EPD(vcom=-2.06)
-    epd.clear()
+    display = AutoEPDDisplay(vcom=-2.06)
+
+    display.clear()
 
     print('Writing initial image...')
-    place_text(epd.frame_buf, 'partial', x_offset=-200)
-    epd.write_full(constants.DisplayModes.GC16)
+    place_text(display.frame_buf, 'partial', x_offset=-200)
+    display.write_full(constants.DisplayModes.GC16)
 
     # so that we're not timing the previous operations
-    epd.wait_display_ready()
+    display.epd.wait_display_ready()
 
     print('Doing partial update...')
-    place_text(epd.frame_buf, 'update', x_offset=+200)
+    place_text(display.frame_buf, 'update', x_offset=+200)
     profile_func(
-        epd.write_partial,
-        constants.DisplayModes.GL16   # should see what best mode is here
+        display.write_partial,
+        constants.DisplayModes.DU   # should see what best mode is here
     )
 
 if __name__ == '__main__':
