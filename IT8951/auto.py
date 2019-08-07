@@ -81,7 +81,7 @@ class AutoDisplay:
         Clear display, device image buffer, and frame buffer (e.g. at startup)
         '''
         # set frame buffer to all white
-        self.frame_buf.paste(0xFF, box=(0, 0, self.epd.width, self.epd.height))
+        self.frame_buf.paste(0xFF, box=(0, 0, self.width, self.height))
         self.write_full(DisplayModes.INIT)
 
     @classmethod
@@ -145,8 +145,11 @@ class AutoEPDDisplay(AutoDisplay):
     This class initializes the EPD, and uses it to display the updates
     '''
 
-    def __init__(self, vcom=-2.06):
-        self.epd = EPD(vcom=vcom)
+    def __init__(self, epd=None, vcom=-2.06):
+
+        if epd is None:
+            epd = EPD(vcom=vcom)
+        self.epd = epd
         AutoDisplay.__init__(self, self.epd.width, self.epd.height)
 
     def update(self, data, xy, dims, mode):
