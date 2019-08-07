@@ -13,7 +13,7 @@ class AutoDisplay:
     implement.
     '''
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, track_gray=False):
         self.width = width
         self.height = height
 
@@ -24,10 +24,12 @@ class AutoDisplay:
         # relevant portions of the display
         self.prev_frame = None
 
-        # keep track of what has changed since the last grayscale update
-        # so that we make sure we clear any black/white intermediates
-        # start out with no changes
-        self.gray_change_bbox = None
+        self.track_gray = track_gray
+        if track_gray:
+            # keep track of what has changed since the last grayscale update
+            # so that we make sure we clear any black/white intermediates
+            # start out with no changes
+            self.gray_change_bbox = None
 
     def write_full(self, mode):
         '''
@@ -36,11 +38,12 @@ class AutoDisplay:
 
         self.update(self.frame_buf.getdata(), (0,0), (self.width, self.height), mode)
 
-        if mode == DisplayModes.DU:
-            diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
-            self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
-        else:
-            self.gray_change_bbox = None
+        if self.track_gray:
+            if mode == DisplayModes.DU:
+                diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+                self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
+            else:
+                self.gray_change_bbox = None
 
         self.prev_frame = self.frame_buf.copy()
 
@@ -56,12 +59,13 @@ class AutoDisplay:
         # compute diff for this frame
         # TODO: should not have round_to in this class
         diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
-        self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
 
-        # reset grayscale changes to zero
-        if mode != DisplayModes.DU:
-            diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
-            self.gray_change_bbox = None
+        if self.track_gray:
+            self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
+            # reset grayscale changes to zero
+            if mode != DisplayModes.DU:
+                diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
+                self.gray_change_bbox = None
 
         self.prev_frame = self.frame_buf.copy()
 
