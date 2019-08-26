@@ -12,3 +12,7 @@ Once you have that installed, clone the repository, enter the directory and run
 pip install requirements.txt
 pip install ./
 ```
+
+---
+
+For some examples of usage, take a look at the integration tests.
