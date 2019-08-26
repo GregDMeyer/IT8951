@@ -175,7 +175,7 @@ class AutoEPDDisplay(AutoDisplay):
 
         # send image to controller
         self.epd.wait_display_ready()
-        self.epd.packed_pixel_write(
+        self.epd.load_img_area(
             data,
             xy=xy,
             dims=dims
