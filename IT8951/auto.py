@@ -13,9 +13,10 @@ class AutoDisplay:
     implement.
     '''
 
-    def __init__(self, width, height, track_gray=False):
+    def __init__(self, width, height, flip=True, track_gray=False):
         self.width = width
         self.height = height
+        self.flip = flip
 
         self.frame_buf = Image.new('L', (width, height), 0xFF)
 
@@ -31,21 +32,31 @@ class AutoDisplay:
             # start out with no changes
             self.gray_change_bbox = None
 
+    def get_frame_buf(self):
+        '''
+        Return a (read-only) version of the frame buf, rotated
+        according to flip
+        '''
+        if self.flip:
+            return self.frame_buf.rotate(180)
+        else:
+            return self.frame_buf
+
     def write_full(self, mode):
         '''
         Write the full image to the device, and display it using mode
         '''
 
-        self.update(self.frame_buf.getdata(), (0,0), (self.width, self.height), mode)
+        self.update(self.get_frame_buf().getdata(), (0,0), (self.width, self.height), mode)
 
         if self.track_gray:
             if mode == DisplayModes.DU:
-                diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+                diff_box = self._compute_diff_box(self.prev_frame, self.get_frame_buf(), round_to=4)
                 self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
             else:
                 self.gray_change_bbox = None
 
-        self.prev_frame = self.frame_buf.copy()
+        self.prev_frame = self.get_frame_buf().copy()
 
     def write_partial(self, mode):
         '''
@@ -58,7 +69,7 @@ class AutoDisplay:
 
         # compute diff for this frame
         # TODO: should not have round_to in this class
-        diff_box = self._compute_diff_box(self.prev_frame, self.frame_buf, round_to=4)
+        diff_box = self._compute_diff_box(self.prev_frame, self.get_frame_buf(), round_to=4)
 
         if self.track_gray:
             self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
@@ -67,13 +78,17 @@ class AutoDisplay:
                 diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
                 self.gray_change_bbox = None
 
-        self.prev_frame = self.frame_buf.copy()
+        self.prev_frame = self.get_frame_buf().copy()
 
         # nothing to do
         if diff_box is None:
             return
 
-        buf = self.frame_buf.crop(diff_box)
+        buf = self.get_frame_buf().crop(diff_box)
+
+        # flatten to black or white
+        if mode == DisplayModes.DU:
+            buf = buf.point(lambda x: 0x00 if x < 0xB0 else 0xFF)
 
         xy = (diff_box[0], diff_box[1])
         dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
@@ -163,8 +178,7 @@ class AutoEPDDisplay(AutoDisplay):
         self.epd.packed_pixel_write(
             data,
             xy=xy,
-            dims=dims,
-            flatten=(mode==DisplayModes.DU)
+            dims=dims
         )
 
         # display sent image

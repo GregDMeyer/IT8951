@@ -203,7 +203,7 @@ class EPD:
     def load_img_end(self):
         self.write_cmd(Commands.LD_IMG_END)
 
-    def packed_pixel_write(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None, flatten=False):
+    def packed_pixel_write(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None):
         endian_type = constants.EndianTypes.LITTLE
         pixel_format = constants.PixelModes.M_4BPP
 
@@ -212,9 +212,6 @@ class EPD:
             self.load_img_start(endian_type, pixel_format, rotate_mode)
         else:
             self.load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
-
-        if flatten:
-            buf = np.fromiter(map(lambda b: 0x00 if b < 0x80 else 0xFF, buf), dtype=np.ubyte, count=len(buf))
 
         buf = self._pack_pixels(buf, pixel_format)
         self.spi.write_pixels(buf)
