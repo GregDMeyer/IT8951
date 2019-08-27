@@ -44,7 +44,7 @@ def main():
 
     print('Writing initial image...')
     place_text(display.frame_buf, 'partial', x_offset=-200)
-    display.write_full(constants.DisplayModes.GC16)
+    display.draw_full(constants.DisplayModes.GC16)
 
     # so that we're not timing the previous operations
     display.epd.wait_display_ready()
@@ -52,7 +52,7 @@ def main():
     print('Doing partial update...')
     place_text(display.frame_buf, 'update', x_offset=+200)
     profile_func(
-        display.write_partial,
+        display.draw_partial,
         constants.DisplayModes.DU   # should see what best mode is here
     )
 

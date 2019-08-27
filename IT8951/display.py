@@ -6,7 +6,7 @@ from PIL import Image, ImageChops
 
 class AutoDisplay:
     '''
-    This class tracks changes to its frame_buf attribute, and automatically
+    This base class tracks changes to its frame_buf attribute, and automatically
     updates only the portions of the display that need to be updated
 
     Updates are done by calling the update() method, which derived classes should
@@ -32,44 +32,43 @@ class AutoDisplay:
             # start out with no changes
             self.gray_change_bbox = None
 
-    def get_frame_buf(self):
+    def _get_frame_buf(self):
         '''
-        Return a (read-only) version of the frame buf, rotated
-        according to flip
+        Return the frame buf, rotated according to flip
         '''
         if self.flip:
             return self.frame_buf.rotate(180)
         else:
             return self.frame_buf
 
-    def write_full(self, mode):
+    def draw_full(self, mode):
         '''
         Write the full image to the device, and display it using mode
         '''
 
-        self.update(self.get_frame_buf().getdata(), (0,0), (self.width, self.height), mode)
+        self.update(self._get_frame_buf().getdata(), (0,0), (self.width, self.height), mode)
 
         if self.track_gray:
             if mode == DisplayModes.DU:
-                diff_box = self._compute_diff_box(self.prev_frame, self.get_frame_buf(), round_to=4)
+                diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=4)
                 self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
             else:
                 self.gray_change_bbox = None
 
-        self.prev_frame = self.get_frame_buf().copy()
+        self.prev_frame = self._get_frame_buf().copy()
 
-    def write_partial(self, mode):
+    def draw_partial(self, mode):
         '''
         Write only the rectangle bounding the pixels of the image that have changed
-        since the last call to write_full or write_partial
+        since the last call to draw_full or draw_partial
         '''
 
         if self.prev_frame is None:  # first call since initialization
-            self.write_full(mode)
+            self.draw_full(mode)
 
         # compute diff for this frame
         # TODO: should not have round_to in this class
-        diff_box = self._compute_diff_box(self.prev_frame, self.get_frame_buf(), round_to=4)
+        diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=4)
 
         if self.track_gray:
             self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
@@ -78,13 +77,13 @@ class AutoDisplay:
                 diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
                 self.gray_change_bbox = None
 
-        self.prev_frame = self.get_frame_buf().copy()
+        self.prev_frame = self._get_frame_buf().copy()
 
         # nothing to do
         if diff_box is None:
             return
 
-        buf = self.get_frame_buf().crop(diff_box)
+        buf = self._get_frame_buf().crop(diff_box)
 
         # flatten to black or white
         if mode == DisplayModes.DU:
@@ -101,7 +100,7 @@ class AutoDisplay:
         '''
         # set frame buffer to all white
         self.frame_buf.paste(0xFF, box=(0, 0, self.width, self.height))
-        self.write_full(DisplayModes.INIT)
+        self.draw_full(DisplayModes.INIT)
 
     @classmethod
     def _compute_diff_box(cls, a, b, round_to=2):
