@@ -1396,53 +1396,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg
 /* RaiseException.proto */
 static void __Pyx_Raise(PyObject *type, PyObject *value, PyObject *tb, PyObject *cause);
 
-/* PyDictVersioning.proto */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-#define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
-#define __PYX_GET_DICT_VERSION(dict)  (((PyDictObject*)(dict))->ma_version_tag)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)\
-    (version_var) = __PYX_GET_DICT_VERSION(dict);\
-    (cache_var) = (value);
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP) {\
-    static PY_UINT64_T __pyx_dict_version = 0;\
-    static PyObject *__pyx_dict_cached_value = NULL;\
-    if (likely(__PYX_GET_DICT_VERSION(DICT) == __pyx_dict_version)) {\
-        (VAR) = __pyx_dict_cached_value;\
-    } else {\
-        (VAR) = __pyx_dict_cached_value = (LOOKUP);\
-        __pyx_dict_version = __PYX_GET_DICT_VERSION(DICT);\
-    }\
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj);
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj);
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version);
-#else
-#define __PYX_GET_DICT_VERSION(dict)  (0)
-#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
-#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
-#endif
-
-/* GetModuleGlobalName.proto */
-#if CYTHON_USE_DICT_VERSIONS
-#define __Pyx_GetModuleGlobalName(var, name)  {\
-    static PY_UINT64_T __pyx_dict_version = 0;\
-    static PyObject *__pyx_dict_cached_value = NULL;\
-    (var) = (likely(__pyx_dict_version == __PYX_GET_DICT_VERSION(__pyx_d))) ?\
-        (likely(__pyx_dict_cached_value) ? __Pyx_NewRef(__pyx_dict_cached_value) : __Pyx_GetBuiltinName(name)) :\
-        __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
-}
-#define __Pyx_GetModuleGlobalNameUncached(var, name)  {\
-    PY_UINT64_T __pyx_dict_version;\
-    PyObject *__pyx_dict_cached_value;\
-    (var) = __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
-}
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value);
-#else
-#define __Pyx_GetModuleGlobalName(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
-#define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
-#endif
-
 /* RaiseArgTupleInvalid.proto */
 static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
     Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
@@ -1638,6 +1591,53 @@ static CYTHON_INLINE int __Pyx_PyErr_ExceptionMatchesInState(PyThreadState* tsta
 
 /* GetAttr3.proto */
 static CYTHON_INLINE PyObject *__Pyx_GetAttr3(PyObject *, PyObject *, PyObject *);
+
+/* PyDictVersioning.proto */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+#define __PYX_DICT_VERSION_INIT  ((PY_UINT64_T) -1)
+#define __PYX_GET_DICT_VERSION(dict)  (((PyDictObject*)(dict))->ma_version_tag)
+#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)\
+    (version_var) = __PYX_GET_DICT_VERSION(dict);\
+    (cache_var) = (value);
+#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP) {\
+    static PY_UINT64_T __pyx_dict_version = 0;\
+    static PyObject *__pyx_dict_cached_value = NULL;\
+    if (likely(__PYX_GET_DICT_VERSION(DICT) == __pyx_dict_version)) {\
+        (VAR) = __pyx_dict_cached_value;\
+    } else {\
+        (VAR) = __pyx_dict_cached_value = (LOOKUP);\
+        __pyx_dict_version = __PYX_GET_DICT_VERSION(DICT);\
+    }\
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj);
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj);
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version);
+#else
+#define __PYX_GET_DICT_VERSION(dict)  (0)
+#define __PYX_UPDATE_DICT_CACHE(dict, value, cache_var, version_var)
+#define __PYX_PY_DICT_LOOKUP_IF_MODIFIED(VAR, DICT, LOOKUP)  (VAR) = (LOOKUP);
+#endif
+
+/* GetModuleGlobalName.proto */
+#if CYTHON_USE_DICT_VERSIONS
+#define __Pyx_GetModuleGlobalName(var, name)  {\
+    static PY_UINT64_T __pyx_dict_version = 0;\
+    static PyObject *__pyx_dict_cached_value = NULL;\
+    (var) = (likely(__pyx_dict_version == __PYX_GET_DICT_VERSION(__pyx_d))) ?\
+        (likely(__pyx_dict_cached_value) ? __Pyx_NewRef(__pyx_dict_cached_value) : __Pyx_GetBuiltinName(name)) :\
+        __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
+}
+#define __Pyx_GetModuleGlobalNameUncached(var, name)  {\
+    PY_UINT64_T __pyx_dict_version;\
+    PyObject *__pyx_dict_cached_value;\
+    (var) = __Pyx__GetModuleGlobalName(name, &__pyx_dict_version, &__pyx_dict_cached_value);\
+}
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value);
+#else
+#define __Pyx_GetModuleGlobalName(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
+#define __Pyx_GetModuleGlobalNameUncached(var, name)  (var) = __Pyx__GetModuleGlobalName(name)
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name);
+#endif
 
 /* RaiseTooManyValuesToUnpack.proto */
 static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
@@ -2219,6 +2219,8 @@ static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
 static PyTypeObject *__pyx_memoryviewslice_type = 0;
+static int __pyx_v_6IT8951_3spi_HRDY;
+static int __pyx_v_6IT8951_3spi_CS;
 static PyObject *generic = 0;
 static PyObject *strided = 0;
 static PyObject *indirect = 0;
@@ -2279,7 +2281,6 @@ static const char __pyx_k_O[] = "O";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_i[] = "i";
 static const char __pyx_k_n[] = "n";
-static const char __pyx_k_CS[] = "CS";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_SPI[] = "SPI";
 static const char __pyx_k_arg[] = "arg";
@@ -2291,7 +2292,6 @@ static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_new[] = "__new__";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_rtn[] = "rtn";
-static const char __pyx_k_HRDY[] = "HRDY";
 static const char __pyx_k_args[] = "args";
 static const char __pyx_k_base[] = "base";
 static const char __pyx_k_cbuf[] = "cbuf";
@@ -2409,7 +2409,6 @@ static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __red
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static PyObject *__pyx_n_s_ASCII;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
-static PyObject *__pyx_n_s_CS;
 static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
 static PyObject *__pyx_kp_s_Cannot_assign_to_read_only_memor;
 static PyObject *__pyx_kp_s_Cannot_create_writable_memory_vi;
@@ -2418,7 +2417,6 @@ static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
 static PyObject *__pyx_kp_u_Error_in_bcm2835_init;
 static PyObject *__pyx_n_u_H;
-static PyObject *__pyx_n_s_HRDY;
 static PyObject *__pyx_n_s_IT8951_spi;
 static PyObject *__pyx_kp_s_IT8951_spi_pyx;
 static PyObject *__pyx_kp_s_Incompatible_checksums_s_vs_0xb0;
@@ -2603,7 +2601,6 @@ static PyObject *__pyx_tp_new__memoryviewslice(PyTypeObject *t, PyObject *a, PyO
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_8;
-static PyObject *__pyx_int_24;
 static PyObject *__pyx_int_4096;
 static PyObject *__pyx_int_24576;
 static PyObject *__pyx_int_184977713;
@@ -2657,7 +2654,7 @@ static PyObject *__pyx_codeobj__12;
 static PyObject *__pyx_codeobj__31;
 /* Late includes */
 
-/* "IT8951/spi.pyx":28
+/* "IT8951/spi.pyx":34
  * class SPI:
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -2686,12 +2683,11 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI___init__(CYTHON_UNUSED PyObject *__p
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   PyObject *__pyx_t_2 = NULL;
-  int __pyx_t_3;
   __Pyx_TraceFrameInit(__pyx_codeobj_)
   __Pyx_RefNannySetupContext("__init__", 0);
-  __Pyx_TraceCall("__init__", __pyx_f[0], 28, 0, __PYX_ERR(0, 28, __pyx_L1_error));
+  __Pyx_TraceCall("__init__", __pyx_f[0], 34, 0, __PYX_ERR(0, 34, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":29
+  /* "IT8951/spi.pyx":35
  * 
  *     def __init__(self):
  *         init_rtn = bcm2835_init()             # <<<<<<<<<<<<<<
@@ -2700,7 +2696,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI___init__(CYTHON_UNUSED PyObject *__p
  */
   __pyx_v_init_rtn = bcm2835_init();
 
-  /* "IT8951/spi.pyx":30
+  /* "IT8951/spi.pyx":36
  *     def __init__(self):
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:             # <<<<<<<<<<<<<<
@@ -2710,20 +2706,20 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI___init__(CYTHON_UNUSED PyObject *__p
   __pyx_t_1 = ((__pyx_v_init_rtn != 1) != 0);
   if (unlikely(__pyx_t_1)) {
 
-    /* "IT8951/spi.pyx":31
+    /* "IT8951/spi.pyx":37
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:
  *             raise RuntimeError("Error in bcm2835_init")             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_spi_begin();
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __PYX_ERR(0, 31, __pyx_L1_error)
+    __PYX_ERR(0, 37, __pyx_L1_error)
 
-    /* "IT8951/spi.pyx":30
+    /* "IT8951/spi.pyx":36
  *     def __init__(self):
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:             # <<<<<<<<<<<<<<
@@ -2732,42 +2728,61 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI___init__(CYTHON_UNUSED PyObject *__p
  */
   }
 
-  /* "IT8951/spi.pyx":33
+  /* "IT8951/spi.pyx":39
  *             raise RuntimeError("Error in bcm2835_init")
  * 
  *         bcm2835_spi_begin();             # <<<<<<<<<<<<<<
- *         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
- *         bcm2835_gpio_write(CS, HIGH);
+ *         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)
+ *         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)
  */
   (void)(bcm2835_spi_begin());
 
-  /* "IT8951/spi.pyx":34
+  /* "IT8951/spi.pyx":40
  * 
  *         bcm2835_spi_begin();
+ *         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)             # <<<<<<<<<<<<<<
+ *         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)
+ *         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)
+ */
+  bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
+
+  /* "IT8951/spi.pyx":41
+ *         bcm2835_spi_begin();
+ *         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)
+ *         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)             # <<<<<<<<<<<<<<
+ *         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)
+ * 
+ */
+  bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
+
+  /* "IT8951/spi.pyx":42
+ *         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)
+ *         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)
+ *         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)             # <<<<<<<<<<<<<<
+ * 
+ *         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
+ */
+  bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32);
+
+  /* "IT8951/spi.pyx":44
+ *         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)
+ * 
  *         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);             # <<<<<<<<<<<<<<
  *         bcm2835_gpio_write(CS, HIGH);
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_CS); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 34, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  bcm2835_gpio_fsel(__pyx_t_3, BCM2835_GPIO_FSEL_OUTP);
+  bcm2835_gpio_fsel(__pyx_v_6IT8951_3spi_CS, BCM2835_GPIO_FSEL_OUTP);
 
-  /* "IT8951/spi.pyx":35
- *         bcm2835_spi_begin();
+  /* "IT8951/spi.pyx":45
+ * 
  *         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
  *         bcm2835_gpio_write(CS, HIGH);             # <<<<<<<<<<<<<<
  * 
  * 	# TODO: should initialize HRDY here
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_CS); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  bcm2835_gpio_write(__pyx_t_3, HIGH);
+  bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, HIGH);
 
-  /* "IT8951/spi.pyx":28
+  /* "IT8951/spi.pyx":34
  * class SPI:
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
@@ -2789,7 +2804,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI___init__(CYTHON_UNUSED PyObject *__p
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":39
+/* "IT8951/spi.pyx":49
  * 	# TODO: should initialize HRDY here
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
@@ -2817,9 +2832,9 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_2__del__(CYTHON_UNUSED PyObject *__p
   __Pyx_RefNannyDeclarations
   __Pyx_TraceFrameInit(__pyx_codeobj__3)
   __Pyx_RefNannySetupContext("__del__", 0);
-  __Pyx_TraceCall("__del__", __pyx_f[0], 39, 0, __PYX_ERR(0, 39, __pyx_L1_error));
+  __Pyx_TraceCall("__del__", __pyx_f[0], 49, 0, __PYX_ERR(0, 49, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":40
+  /* "IT8951/spi.pyx":50
  * 
  *     def __del__(self):
  *         bcm2835_spi_end()             # <<<<<<<<<<<<<<
@@ -2828,7 +2843,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_2__del__(CYTHON_UNUSED PyObject *__p
  */
   bcm2835_spi_end();
 
-  /* "IT8951/spi.pyx":41
+  /* "IT8951/spi.pyx":51
  *     def __del__(self):
  *         bcm2835_spi_end()
  *         bcm2835_close()             # <<<<<<<<<<<<<<
@@ -2837,7 +2852,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_2__del__(CYTHON_UNUSED PyObject *__p
  */
   (void)(bcm2835_close());
 
-  /* "IT8951/spi.pyx":39
+  /* "IT8951/spi.pyx":49
  * 	# TODO: should initialize HRDY here
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
@@ -2858,7 +2873,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_2__del__(CYTHON_UNUSED PyObject *__p
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":43
+/* "IT8951/spi.pyx":53
  *         bcm2835_close()
  * 
  *     def wait_ready(self):             # <<<<<<<<<<<<<<
@@ -2885,14 +2900,12 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_4wait_ready(CYTHON_UNUSED PyObject *
   PyObject *__pyx_r = NULL;
   __Pyx_TraceDeclarations
   __Pyx_RefNannyDeclarations
-  PyObject *__pyx_t_1 = NULL;
-  int __pyx_t_2;
-  int __pyx_t_3;
+  int __pyx_t_1;
   __Pyx_TraceFrameInit(__pyx_codeobj__4)
   __Pyx_RefNannySetupContext("wait_ready", 0);
-  __Pyx_TraceCall("wait_ready", __pyx_f[0], 43, 0, __PYX_ERR(0, 43, __pyx_L1_error));
+  __Pyx_TraceCall("wait_ready", __pyx_f[0], 53, 0, __PYX_ERR(0, 53, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":48
+  /* "IT8951/spi.pyx":58
  *         '''
  *         # TODO: should we sleep just a tiny bit here?
  *         while not bcm2835_gpio_lev(HRDY):             # <<<<<<<<<<<<<<
@@ -2900,15 +2913,11 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_4wait_ready(CYTHON_UNUSED PyObject *
  * 
  */
   while (1) {
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_HRDY); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = ((!(bcm2835_gpio_lev(__pyx_t_2) != 0)) != 0);
-    if (!__pyx_t_3) break;
+    __pyx_t_1 = ((!(bcm2835_gpio_lev(__pyx_v_6IT8951_3spi_HRDY) != 0)) != 0);
+    if (!__pyx_t_1) break;
   }
 
-  /* "IT8951/spi.pyx":43
+  /* "IT8951/spi.pyx":53
  *         bcm2835_close()
  * 
  *     def wait_ready(self):             # <<<<<<<<<<<<<<
@@ -2920,7 +2929,6 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_4wait_ready(CYTHON_UNUSED PyObject *
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_1);
   __Pyx_AddTraceback("IT8951.spi.SPI.wait_ready", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -2930,7 +2938,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_4wait_ready(CYTHON_UNUSED PyObject *
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":51
+/* "IT8951/spi.pyx":61
  *             pass
  * 
  *     def read(self, preamble, count):             # <<<<<<<<<<<<<<
@@ -2974,17 +2982,17 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_7read(PyObject *__pyx_self, PyObject
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_preamble)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, 1); __PYX_ERR(0, 51, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, 1); __PYX_ERR(0, 61, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_count)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, 2); __PYX_ERR(0, 51, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, 2); __PYX_ERR(0, 61, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read") < 0)) __PYX_ERR(0, 51, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read") < 0)) __PYX_ERR(0, 61, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2999,7 +3007,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_7read(PyObject *__pyx_self, PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 51, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 61, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("IT8951.spi.SPI.read", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3031,18 +3039,18 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   Py_ssize_t __pyx_t_10;
   __Pyx_TraceFrameInit(__pyx_codeobj__5)
   __Pyx_RefNannySetupContext("read", 0);
-  __Pyx_TraceCall("read", __pyx_f[0], 51, 0, __PYX_ERR(0, 51, __pyx_L1_error));
+  __Pyx_TraceCall("read", __pyx_f[0], 61, 0, __PYX_ERR(0, 61, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":60
+  /* "IT8951/spi.pyx":70
  *         # initializing it is unnecessary here, but read() is not called
  *         # with large arrays so this should not be a performance problem
  *         cdef array.array rtn = array.array('H', (0,)*count)             # <<<<<<<<<<<<<<
  *         cdef unsigned short[:] crtn = rtn
  * 
  */
-  __pyx_t_1 = PyNumber_Multiply(__pyx_tuple__6, __pyx_v_count); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_tuple__6, __pyx_v_count); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_u_H);
   __Pyx_GIVEREF(__pyx_n_u_H);
@@ -3050,32 +3058,32 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_rtn = ((arrayobject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":61
+  /* "IT8951/spi.pyx":71
  *         # with large arrays so this should not be a performance problem
  *         cdef array.array rtn = array.array('H', (0,)*count)
  *         cdef unsigned short[:] crtn = rtn             # <<<<<<<<<<<<<<
  * 
  *         self.wait_ready()
  */
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(((PyObject *)__pyx_v_rtn), PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(((PyObject *)__pyx_v_rtn), PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 71, __pyx_L1_error)
   __pyx_v_crtn = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "IT8951/spi.pyx":63
+  /* "IT8951/spi.pyx":73
  *         cdef unsigned short[:] crtn = rtn
  * 
  *         self.wait_ready()             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_gpio_write(CS, LOW)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3089,55 +3097,51 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   }
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":65
+  /* "IT8951/spi.pyx":75
  *         self.wait_ready()
  * 
  *         bcm2835_gpio_write(CS, LOW)             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_spi_transfer(preamble>>8)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_CS); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  bcm2835_gpio_write(__pyx_t_5, LOW);
+  bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, LOW);
 
-  /* "IT8951/spi.pyx":67
+  /* "IT8951/spi.pyx":77
  *         bcm2835_gpio_write(CS, LOW)
  * 
  *         bcm2835_spi_transfer(preamble>>8)             # <<<<<<<<<<<<<<
  *         bcm2835_spi_transfer(preamble)
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_RshiftObjC(__pyx_v_preamble, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_RshiftObjC(__pyx_v_preamble, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   (void)(bcm2835_spi_transfer(__pyx_t_5));
 
-  /* "IT8951/spi.pyx":68
+  /* "IT8951/spi.pyx":78
  * 
  *         bcm2835_spi_transfer(preamble>>8)
  *         bcm2835_spi_transfer(preamble)             # <<<<<<<<<<<<<<
  * 
  *         self.wait_ready()
  */
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_preamble); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_preamble); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 78, __pyx_L1_error)
   (void)(bcm2835_spi_transfer(__pyx_t_5));
 
-  /* "IT8951/spi.pyx":70
+  /* "IT8951/spi.pyx":80
  *         bcm2835_spi_transfer(preamble)
  * 
  *         self.wait_ready()             # <<<<<<<<<<<<<<
  * 
  *         # spec says to read two dummy bytes
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3151,12 +3155,12 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   }
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":73
+  /* "IT8951/spi.pyx":83
  * 
  *         # spec says to read two dummy bytes
  *         bcm2835_spi_transfer(0)             # <<<<<<<<<<<<<<
@@ -3165,7 +3169,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
  */
   (void)(bcm2835_spi_transfer(0));
 
-  /* "IT8951/spi.pyx":74
+  /* "IT8951/spi.pyx":84
  *         # spec says to read two dummy bytes
  *         bcm2835_spi_transfer(0)
  *         bcm2835_spi_transfer(0)             # <<<<<<<<<<<<<<
@@ -3174,14 +3178,14 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
  */
   (void)(bcm2835_spi_transfer(0));
 
-  /* "IT8951/spi.pyx":76
+  /* "IT8951/spi.pyx":86
  *         bcm2835_spi_transfer(0)
  * 
  *         self.wait_ready()             # <<<<<<<<<<<<<<
  * 
  *         cdef int i
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3195,24 +3199,24 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   }
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":79
+  /* "IT8951/spi.pyx":89
  * 
  *         cdef int i
  *         for i in range(count):             # <<<<<<<<<<<<<<
  *             crtn[i] = bcm2835_spi_transfer(0x00)<<8
  *             crtn[i] |= bcm2835_spi_transfer(0x00)
  */
-  __pyx_t_6 = __Pyx_PyInt_As_long(__pyx_v_count); if (unlikely((__pyx_t_6 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_As_long(__pyx_v_count); if (unlikely((__pyx_t_6 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 89, __pyx_L1_error)
   __pyx_t_7 = __pyx_t_6;
   for (__pyx_t_5 = 0; __pyx_t_5 < __pyx_t_7; __pyx_t_5+=1) {
     __pyx_v_i = __pyx_t_5;
 
-    /* "IT8951/spi.pyx":80
+    /* "IT8951/spi.pyx":90
  *         cdef int i
  *         for i in range(count):
  *             crtn[i] = bcm2835_spi_transfer(0x00)<<8             # <<<<<<<<<<<<<<
@@ -3227,11 +3231,11 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
     } else if (unlikely(__pyx_t_8 >= __pyx_v_crtn.shape[0])) __pyx_t_9 = 0;
     if (unlikely(__pyx_t_9 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_9);
-      __PYX_ERR(0, 80, __pyx_L1_error)
+      __PYX_ERR(0, 90, __pyx_L1_error)
     }
     *((unsigned short *) ( /* dim=0 */ (__pyx_v_crtn.data + __pyx_t_8 * __pyx_v_crtn.strides[0]) )) = (bcm2835_spi_transfer(0x00) << 8);
 
-    /* "IT8951/spi.pyx":81
+    /* "IT8951/spi.pyx":91
  *         for i in range(count):
  *             crtn[i] = bcm2835_spi_transfer(0x00)<<8
  *             crtn[i] |= bcm2835_spi_transfer(0x00)             # <<<<<<<<<<<<<<
@@ -3246,25 +3250,21 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
     } else if (unlikely(__pyx_t_10 >= __pyx_v_crtn.shape[0])) __pyx_t_9 = 0;
     if (unlikely(__pyx_t_9 != -1)) {
       __Pyx_RaiseBufferIndexError(__pyx_t_9);
-      __PYX_ERR(0, 81, __pyx_L1_error)
+      __PYX_ERR(0, 91, __pyx_L1_error)
     }
     *((unsigned short *) ( /* dim=0 */ (__pyx_v_crtn.data + __pyx_t_10 * __pyx_v_crtn.strides[0]) )) |= bcm2835_spi_transfer(0x00);
   }
 
-  /* "IT8951/spi.pyx":83
+  /* "IT8951/spi.pyx":93
  *             crtn[i] |= bcm2835_spi_transfer(0x00)
  * 
  *         bcm2835_gpio_write(CS, HIGH)             # <<<<<<<<<<<<<<
  * 
  *         return rtn
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_CS); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 83, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  bcm2835_gpio_write(__pyx_t_5, HIGH);
+  bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, HIGH);
 
-  /* "IT8951/spi.pyx":85
+  /* "IT8951/spi.pyx":95
  *         bcm2835_gpio_write(CS, HIGH)
  * 
  *         return rtn             # <<<<<<<<<<<<<<
@@ -3276,7 +3276,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   __pyx_r = ((PyObject *)__pyx_v_rtn);
   goto __pyx_L0;
 
-  /* "IT8951/spi.pyx":51
+  /* "IT8951/spi.pyx":61
  *             pass
  * 
  *     def read(self, preamble, count):             # <<<<<<<<<<<<<<
@@ -3301,7 +3301,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6read(CYTHON_UNUSED PyObject *__pyx_
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":87
+/* "IT8951/spi.pyx":97
  *         return rtn
  * 
  *     def write(self, preamble, ary):             # <<<<<<<<<<<<<<
@@ -3345,17 +3345,17 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_9write(PyObject *__pyx_self, PyObjec
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_preamble)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, 1); __PYX_ERR(0, 87, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, 1); __PYX_ERR(0, 97, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ary)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, 2); __PYX_ERR(0, 87, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, 2); __PYX_ERR(0, 97, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write") < 0)) __PYX_ERR(0, 87, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write") < 0)) __PYX_ERR(0, 97, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -3370,7 +3370,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_9write(PyObject *__pyx_self, PyObjec
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 87, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 97, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("IT8951.spi.SPI.write", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3400,16 +3400,16 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8write(CYTHON_UNUSED PyObject *__pyx
   Py_ssize_t __pyx_t_8;
   __Pyx_TraceFrameInit(__pyx_codeobj__7)
   __Pyx_RefNannySetupContext("write", 0);
-  __Pyx_TraceCall("write", __pyx_f[0], 87, 0, __PYX_ERR(0, 87, __pyx_L1_error));
+  __Pyx_TraceCall("write", __pyx_f[0], 97, 0, __PYX_ERR(0, 97, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":91
+  /* "IT8951/spi.pyx":101
  *         Send preamble, and then write the data in ary (16-bit unsigned ints) over SPI
  *         '''
  *         cdef array.array buf = array.array('H', ary)             # <<<<<<<<<<<<<<
  *         cdef unsigned short[:] cbuf = buf
  * 
  */
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_u_H);
   __Pyx_GIVEREF(__pyx_n_u_H);
@@ -3417,32 +3417,32 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8write(CYTHON_UNUSED PyObject *__pyx
   __Pyx_INCREF(__pyx_v_ary);
   __Pyx_GIVEREF(__pyx_v_ary);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_ary);
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_7cpython_5array_array), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_buf = ((arrayobject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":92
+  /* "IT8951/spi.pyx":102
  *         '''
  *         cdef array.array buf = array.array('H', ary)
  *         cdef unsigned short[:] cbuf = buf             # <<<<<<<<<<<<<<
  * 
  *         self.wait_ready()
  */
-  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(((PyObject *)__pyx_v_buf), PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(((PyObject *)__pyx_v_buf), PyBUF_WRITABLE); if (unlikely(!__pyx_t_3.memview)) __PYX_ERR(0, 102, __pyx_L1_error)
   __pyx_v_cbuf = __pyx_t_3;
   __pyx_t_3.memview = NULL;
   __pyx_t_3.data = NULL;
 
-  /* "IT8951/spi.pyx":94
+  /* "IT8951/spi.pyx":104
  *         cdef unsigned short[:] cbuf = buf
  * 
  *         self.wait_ready()             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_gpio_write(CS, LOW)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 104, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -3456,55 +3456,51 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8write(CYTHON_UNUSED PyObject *__pyx
   }
   __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 104, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":96
+  /* "IT8951/spi.pyx":106
  *         self.wait_ready()
  * 
  *         bcm2835_gpio_write(CS, LOW)             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_spi_transfer(preamble>>8)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_CS); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 96, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  bcm2835_gpio_write(__pyx_t_5, LOW);
+  bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, LOW);
 
-  /* "IT8951/spi.pyx":98
+  /* "IT8951/spi.pyx":108
  *         bcm2835_gpio_write(CS, LOW)
  * 
  *         bcm2835_spi_transfer(preamble>>8)             # <<<<<<<<<<<<<<
  *         bcm2835_spi_transfer(preamble)
  * 
  */
-  __pyx_t_2 = __Pyx_PyInt_RshiftObjC(__pyx_v_preamble, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_RshiftObjC(__pyx_v_preamble, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 98, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   (void)(bcm2835_spi_transfer(__pyx_t_5));
 
-  /* "IT8951/spi.pyx":99
+  /* "IT8951/spi.pyx":109
  * 
  *         bcm2835_spi_transfer(preamble>>8)
  *         bcm2835_spi_transfer(preamble)             # <<<<<<<<<<<<<<
  * 
  *         self.wait_ready()
  */
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_preamble); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_preamble); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 109, __pyx_L1_error)
   (void)(bcm2835_spi_transfer(__pyx_t_5));
 
-  /* "IT8951/spi.pyx":101
+  /* "IT8951/spi.pyx":111
  *         bcm2835_spi_transfer(preamble)
  * 
  *         self.wait_ready()             # <<<<<<<<<<<<<<
  * 
  *         # TODO: what's the best way to do this in cython?
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_wait_ready); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -3518,67 +3514,63 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8write(CYTHON_UNUSED PyObject *__pyx
   }
   __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":104
+  /* "IT8951/spi.pyx":114
  * 
  *         # TODO: what's the best way to do this in cython?
  *         for i in range(len(ary)):             # <<<<<<<<<<<<<<
  *             bcm2835_spi_transfer(buf[i]>>8)
  *             bcm2835_spi_transfer(buf[i])
  */
-  __pyx_t_6 = PyObject_Length(__pyx_v_ary); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_6 = PyObject_Length(__pyx_v_ary); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 114, __pyx_L1_error)
   __pyx_t_7 = __pyx_t_6;
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "IT8951/spi.pyx":105
+    /* "IT8951/spi.pyx":115
  *         # TODO: what's the best way to do this in cython?
  *         for i in range(len(ary)):
  *             bcm2835_spi_transfer(buf[i]>>8)             # <<<<<<<<<<<<<<
  *             bcm2835_spi_transfer(buf[i])
  * 
  */
-    __pyx_t_2 = __Pyx_GetItemInt(((PyObject *)__pyx_v_buf), __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetItemInt(((PyObject *)__pyx_v_buf), __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = __Pyx_PyInt_RshiftObjC(__pyx_t_2, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_RshiftObjC(__pyx_t_2, __pyx_int_8, 8, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     (void)(bcm2835_spi_transfer(__pyx_t_5));
 
-    /* "IT8951/spi.pyx":106
+    /* "IT8951/spi.pyx":116
  *         for i in range(len(ary)):
  *             bcm2835_spi_transfer(buf[i]>>8)
  *             bcm2835_spi_transfer(buf[i])             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_gpio_write(CS,HIGH)
  */
-    __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_buf), __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_buf), __pyx_v_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 106, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 116, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     (void)(bcm2835_spi_transfer(__pyx_t_5));
   }
 
-  /* "IT8951/spi.pyx":108
+  /* "IT8951/spi.pyx":118
  *             bcm2835_spi_transfer(buf[i])
  * 
  *         bcm2835_gpio_write(CS,HIGH)             # <<<<<<<<<<<<<<
  * 
  *     def write_pixels(self, pixbuf):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_CS); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 108, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  bcm2835_gpio_write(__pyx_t_5, HIGH);
+  bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, HIGH);
 
-  /* "IT8951/spi.pyx":87
+  /* "IT8951/spi.pyx":97
  *         return rtn
  * 
  *     def write(self, preamble, ary):             # <<<<<<<<<<<<<<
@@ -3605,7 +3597,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8write(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":110
+/* "IT8951/spi.pyx":120
  *         bcm2835_gpio_write(CS,HIGH)
  * 
  *     def write_pixels(self, pixbuf):             # <<<<<<<<<<<<<<
@@ -3646,11 +3638,11 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_11write_pixels(PyObject *__pyx_self,
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pixbuf)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_pixels", 1, 2, 2, 1); __PYX_ERR(0, 110, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_pixels", 1, 2, 2, 1); __PYX_ERR(0, 120, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_pixels") < 0)) __PYX_ERR(0, 110, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_pixels") < 0)) __PYX_ERR(0, 120, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3663,7 +3655,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_11write_pixels(PyObject *__pyx_self,
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_pixels", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 110, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_pixels", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 120, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("IT8951.spi.SPI.write_pixels", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3687,28 +3679,27 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
   size_t __pyx_t_2;
   Py_ssize_t __pyx_t_3;
   int __pyx_t_4;
-  PyObject *__pyx_t_5 = NULL;
-  int __pyx_t_6;
+  int __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
   int __pyx_t_7;
   Py_ssize_t __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
   __Pyx_TraceFrameInit(__pyx_codeobj__8)
   __Pyx_RefNannySetupContext("write_pixels", 0);
-  __Pyx_TraceCall("write_pixels", __pyx_f[0], 110, 0, __PYX_ERR(0, 110, __pyx_L1_error));
+  __Pyx_TraceCall("write_pixels", __pyx_f[0], 120, 0, __PYX_ERR(0, 120, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":116
+  /* "IT8951/spi.pyx":126
  *         '''
  *         # cdef array.array buf = array.array('H', pixbuf)
  *         cdef unsigned short[:] cbuf = pixbuf             # <<<<<<<<<<<<<<
  * 
  *         cdef unsigned short preamble = 0x0000
  */
-  __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(__pyx_v_pixbuf, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_to_MemoryviewSlice_ds_unsigned_short(__pyx_v_pixbuf, PyBUF_WRITABLE); if (unlikely(!__pyx_t_1.memview)) __PYX_ERR(0, 126, __pyx_L1_error)
   __pyx_v_cbuf = __pyx_t_1;
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "IT8951/spi.pyx":118
+  /* "IT8951/spi.pyx":128
  *         cdef unsigned short[:] cbuf = pixbuf
  * 
  *         cdef unsigned short preamble = 0x0000             # <<<<<<<<<<<<<<
@@ -3717,7 +3708,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
  */
   __pyx_v_preamble = 0x0000;
 
-  /* "IT8951/spi.pyx":122
+  /* "IT8951/spi.pyx":132
  *         # we inline the wait_ready here for speed
  *         cdef int i
  *         for i in range(len(cbuf)):             # <<<<<<<<<<<<<<
@@ -3729,7 +3720,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_i = __pyx_t_4;
 
-    /* "IT8951/spi.pyx":123
+    /* "IT8951/spi.pyx":133
  *         cdef int i
  *         for i in range(len(cbuf)):
  *             while not bcm2835_gpio_lev(HRDY):             # <<<<<<<<<<<<<<
@@ -3737,28 +3728,20 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
  * 
  */
     while (1) {
-      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_HRDY); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 123, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_7 = ((!(bcm2835_gpio_lev(__pyx_t_6) != 0)) != 0);
-      if (!__pyx_t_7) break;
+      __pyx_t_5 = ((!(bcm2835_gpio_lev(__pyx_v_6IT8951_3spi_HRDY) != 0)) != 0);
+      if (!__pyx_t_5) break;
     }
 
-    /* "IT8951/spi.pyx":126
+    /* "IT8951/spi.pyx":136
  *                 pass
  * 
  *             bcm2835_gpio_write(CS, LOW)             # <<<<<<<<<<<<<<
  * 
  *             bcm2835_spi_transfer(preamble>>8)
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_CS); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 126, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 126, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    bcm2835_gpio_write(__pyx_t_6, LOW);
+    bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, LOW);
 
-    /* "IT8951/spi.pyx":128
+    /* "IT8951/spi.pyx":138
  *             bcm2835_gpio_write(CS, LOW)
  * 
  *             bcm2835_spi_transfer(preamble>>8)             # <<<<<<<<<<<<<<
@@ -3767,7 +3750,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
  */
     (void)(bcm2835_spi_transfer((__pyx_v_preamble >> 8)));
 
-    /* "IT8951/spi.pyx":129
+    /* "IT8951/spi.pyx":139
  * 
  *             bcm2835_spi_transfer(preamble>>8)
  *             bcm2835_spi_transfer(preamble)             # <<<<<<<<<<<<<<
@@ -3776,7 +3759,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
  */
     (void)(bcm2835_spi_transfer(__pyx_v_preamble));
 
-    /* "IT8951/spi.pyx":131
+    /* "IT8951/spi.pyx":141
  *             bcm2835_spi_transfer(preamble)
  * 
  *             while not bcm2835_gpio_lev(HRDY):             # <<<<<<<<<<<<<<
@@ -3784,67 +3767,59 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
  * 
  */
     while (1) {
-      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_HRDY); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 131, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 131, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_7 = ((!(bcm2835_gpio_lev(__pyx_t_6) != 0)) != 0);
-      if (!__pyx_t_7) break;
+      __pyx_t_5 = ((!(bcm2835_gpio_lev(__pyx_v_6IT8951_3spi_HRDY) != 0)) != 0);
+      if (!__pyx_t_5) break;
     }
 
-    /* "IT8951/spi.pyx":134
+    /* "IT8951/spi.pyx":144
  *                 pass
  * 
  *             bcm2835_spi_transfer(cbuf[i] >> 8)             # <<<<<<<<<<<<<<
  *             bcm2835_spi_transfer(cbuf[i])
  * 
  */
-    __pyx_t_8 = __pyx_v_i;
-    __pyx_t_6 = -1;
-    if (__pyx_t_8 < 0) {
-      __pyx_t_8 += __pyx_v_cbuf.shape[0];
-      if (unlikely(__pyx_t_8 < 0)) __pyx_t_6 = 0;
-    } else if (unlikely(__pyx_t_8 >= __pyx_v_cbuf.shape[0])) __pyx_t_6 = 0;
-    if (unlikely(__pyx_t_6 != -1)) {
-      __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 134, __pyx_L1_error)
+    __pyx_t_6 = __pyx_v_i;
+    __pyx_t_7 = -1;
+    if (__pyx_t_6 < 0) {
+      __pyx_t_6 += __pyx_v_cbuf.shape[0];
+      if (unlikely(__pyx_t_6 < 0)) __pyx_t_7 = 0;
+    } else if (unlikely(__pyx_t_6 >= __pyx_v_cbuf.shape[0])) __pyx_t_7 = 0;
+    if (unlikely(__pyx_t_7 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_7);
+      __PYX_ERR(0, 144, __pyx_L1_error)
     }
-    (void)(bcm2835_spi_transfer(((*((unsigned short *) ( /* dim=0 */ (__pyx_v_cbuf.data + __pyx_t_8 * __pyx_v_cbuf.strides[0]) ))) >> 8)));
+    (void)(bcm2835_spi_transfer(((*((unsigned short *) ( /* dim=0 */ (__pyx_v_cbuf.data + __pyx_t_6 * __pyx_v_cbuf.strides[0]) ))) >> 8)));
 
-    /* "IT8951/spi.pyx":135
+    /* "IT8951/spi.pyx":145
  * 
  *             bcm2835_spi_transfer(cbuf[i] >> 8)
  *             bcm2835_spi_transfer(cbuf[i])             # <<<<<<<<<<<<<<
  * 
  *             bcm2835_gpio_write(CS,HIGH)
  */
-    __pyx_t_9 = __pyx_v_i;
-    __pyx_t_6 = -1;
-    if (__pyx_t_9 < 0) {
-      __pyx_t_9 += __pyx_v_cbuf.shape[0];
-      if (unlikely(__pyx_t_9 < 0)) __pyx_t_6 = 0;
-    } else if (unlikely(__pyx_t_9 >= __pyx_v_cbuf.shape[0])) __pyx_t_6 = 0;
-    if (unlikely(__pyx_t_6 != -1)) {
-      __Pyx_RaiseBufferIndexError(__pyx_t_6);
-      __PYX_ERR(0, 135, __pyx_L1_error)
+    __pyx_t_8 = __pyx_v_i;
+    __pyx_t_7 = -1;
+    if (__pyx_t_8 < 0) {
+      __pyx_t_8 += __pyx_v_cbuf.shape[0];
+      if (unlikely(__pyx_t_8 < 0)) __pyx_t_7 = 0;
+    } else if (unlikely(__pyx_t_8 >= __pyx_v_cbuf.shape[0])) __pyx_t_7 = 0;
+    if (unlikely(__pyx_t_7 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_7);
+      __PYX_ERR(0, 145, __pyx_L1_error)
     }
-    (void)(bcm2835_spi_transfer((*((unsigned short *) ( /* dim=0 */ (__pyx_v_cbuf.data + __pyx_t_9 * __pyx_v_cbuf.strides[0]) )))));
+    (void)(bcm2835_spi_transfer((*((unsigned short *) ( /* dim=0 */ (__pyx_v_cbuf.data + __pyx_t_8 * __pyx_v_cbuf.strides[0]) )))));
 
-    /* "IT8951/spi.pyx":137
+    /* "IT8951/spi.pyx":147
  *             bcm2835_spi_transfer(cbuf[i])
  * 
  *             bcm2835_gpio_write(CS,HIGH)             # <<<<<<<<<<<<<<
  * 
  *     # the following functions are higher-level for writing and reading
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_CS); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 137, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 137, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    bcm2835_gpio_write(__pyx_t_6, HIGH);
+    bcm2835_gpio_write(__pyx_v_6IT8951_3spi_CS, HIGH);
   }
 
-  /* "IT8951/spi.pyx":110
+  /* "IT8951/spi.pyx":120
  *         bcm2835_gpio_write(CS,HIGH)
  * 
  *     def write_pixels(self, pixbuf):             # <<<<<<<<<<<<<<
@@ -3857,7 +3832,6 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
   goto __pyx_L0;
   __pyx_L1_error:;
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_AddTraceback("IT8951.spi.SPI.write_pixels", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -3868,7 +3842,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_10write_pixels(CYTHON_UNUSED PyObjec
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":142
+/* "IT8951/spi.pyx":152
  *     # various types of data to and from the device
  * 
  *     def write_cmd(self, cmd, *args):             # <<<<<<<<<<<<<<
@@ -3920,12 +3894,12 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_13write_cmd(PyObject *__pyx_self, Py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_cmd)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_cmd", 0, 2, 2, 1); __PYX_ERR(0, 142, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_cmd", 0, 2, 2, 1); __PYX_ERR(0, 152, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t used_pos_args = (pos_args < 2) ? pos_args : 2;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, used_pos_args, "write_cmd") < 0)) __PYX_ERR(0, 142, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, used_pos_args, "write_cmd") < 0)) __PYX_ERR(0, 152, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) < 2) {
       goto __pyx_L5_argtuple_error;
@@ -3938,7 +3912,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_13write_cmd(PyObject *__pyx_self, Py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_cmd", 0, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 142, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_cmd", 0, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 152, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_args); __pyx_v_args = 0;
   __Pyx_AddTraceback("IT8951.spi.SPI.write_cmd", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -3967,18 +3941,18 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   Py_ssize_t __pyx_t_7;
   __Pyx_TraceFrameInit(__pyx_codeobj__9)
   __Pyx_RefNannySetupContext("write_cmd", 0);
-  __Pyx_TraceCall("write_cmd", __pyx_f[0], 142, 0, __PYX_ERR(0, 142, __pyx_L1_error));
+  __Pyx_TraceCall("write_cmd", __pyx_f[0], 152, 0, __PYX_ERR(0, 152, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":155
+  /* "IT8951/spi.pyx":165
  *             Arguments for the command
  *         '''
  *         self.write(0x6000, [cmd])  # 0x6000 is preamble             # <<<<<<<<<<<<<<
  *         for arg in args:
  *             self.write_data([arg])
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_cmd);
   __Pyx_GIVEREF(__pyx_v_cmd);
@@ -3998,7 +3972,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_int_24576, __pyx_t_3};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4007,14 +3981,14 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_int_24576, __pyx_t_3};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -4025,14 +3999,14 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":156
+  /* "IT8951/spi.pyx":166
  *         '''
  *         self.write(0x6000, [cmd])  # 0x6000 is preamble
  *         for arg in args:             # <<<<<<<<<<<<<<
@@ -4043,24 +4017,24 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   for (;;) {
     if (__pyx_t_7 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-    __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_7); __Pyx_INCREF(__pyx_t_2); __pyx_t_7++; if (unlikely(0 < 0)) __PYX_ERR(0, 166, __pyx_L1_error)
     #else
-    __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_7); __pyx_t_7++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     #endif
     __Pyx_XDECREF_SET(__pyx_v_arg, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "IT8951/spi.pyx":157
+    /* "IT8951/spi.pyx":167
  *         self.write(0x6000, [cmd])  # 0x6000 is preamble
  *         for arg in args:
  *             self.write_data([arg])             # <<<<<<<<<<<<<<
  * 
  *     def write_data(self, ary):
  */
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write_data); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write_data); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+    __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_INCREF(__pyx_v_arg);
     __Pyx_GIVEREF(__pyx_v_arg);
@@ -4078,12 +4052,12 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
     __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "IT8951/spi.pyx":156
+    /* "IT8951/spi.pyx":166
  *         '''
  *         self.write(0x6000, [cmd])  # 0x6000 is preamble
  *         for arg in args:             # <<<<<<<<<<<<<<
@@ -4093,7 +4067,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":142
+  /* "IT8951/spi.pyx":152
  *     # various types of data to and from the device
  * 
  *     def write_cmd(self, cmd, *args):             # <<<<<<<<<<<<<<
@@ -4120,7 +4094,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_12write_cmd(CYTHON_UNUSED PyObject *
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":159
+/* "IT8951/spi.pyx":169
  *             self.write_data([arg])
  * 
  *     def write_data(self, ary):             # <<<<<<<<<<<<<<
@@ -4161,11 +4135,11 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_15write_data(PyObject *__pyx_self, P
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ary)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("write_data", 1, 2, 2, 1); __PYX_ERR(0, 159, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("write_data", 1, 2, 2, 1); __PYX_ERR(0, 169, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_data") < 0)) __PYX_ERR(0, 159, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "write_data") < 0)) __PYX_ERR(0, 169, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4178,7 +4152,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_15write_data(PyObject *__pyx_self, P
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("write_data", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 159, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("write_data", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 169, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("IT8951.spi.SPI.write_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4202,16 +4176,16 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_14write_data(CYTHON_UNUSED PyObject 
   PyObject *__pyx_t_5 = NULL;
   __Pyx_TraceFrameInit(__pyx_codeobj__10)
   __Pyx_RefNannySetupContext("write_data", 0);
-  __Pyx_TraceCall("write_data", __pyx_f[0], 159, 0, __PYX_ERR(0, 159, __pyx_L1_error));
+  __Pyx_TraceCall("write_data", __pyx_f[0], 169, 0, __PYX_ERR(0, 169, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":169
+  /* "IT8951/spi.pyx":179
  *             The data
  *         '''
  *         self.write(0x0000, ary)             # <<<<<<<<<<<<<<
  * 
  *     def read_data(self, n):
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -4228,7 +4202,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_14write_data(CYTHON_UNUSED PyObject 
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_0, __pyx_v_ary};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
@@ -4236,13 +4210,13 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_14write_data(CYTHON_UNUSED PyObject 
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_0, __pyx_v_ary};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
   #endif
   {
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 169, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 179, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -4253,14 +4227,14 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_14write_data(CYTHON_UNUSED PyObject 
     __Pyx_INCREF(__pyx_v_ary);
     __Pyx_GIVEREF(__pyx_v_ary);
     PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_ary);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":159
+  /* "IT8951/spi.pyx":169
  *             self.write_data([arg])
  * 
  *     def write_data(self, ary):             # <<<<<<<<<<<<<<
@@ -4285,7 +4259,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_14write_data(CYTHON_UNUSED PyObject 
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":171
+/* "IT8951/spi.pyx":181
  *         self.write(0x0000, ary)
  * 
  *     def read_data(self, n):             # <<<<<<<<<<<<<<
@@ -4326,11 +4300,11 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_17read_data(PyObject *__pyx_self, Py
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("read_data", 1, 2, 2, 1); __PYX_ERR(0, 171, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("read_data", 1, 2, 2, 1); __PYX_ERR(0, 181, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_data") < 0)) __PYX_ERR(0, 171, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_data") < 0)) __PYX_ERR(0, 181, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4343,7 +4317,7 @@ static PyObject *__pyx_pw_6IT8951_3spi_3SPI_17read_data(PyObject *__pyx_self, Py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_data", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 171, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_data", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 181, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("IT8951.spi.SPI.read_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4367,9 +4341,9 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
   PyObject *__pyx_t_5 = NULL;
   __Pyx_TraceFrameInit(__pyx_codeobj__11)
   __Pyx_RefNannySetupContext("read_data", 0);
-  __Pyx_TraceCall("read_data", __pyx_f[0], 171, 0, __PYX_ERR(0, 171, __pyx_L1_error));
+  __Pyx_TraceCall("read_data", __pyx_f[0], 181, 0, __PYX_ERR(0, 181, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":181
+  /* "IT8951/spi.pyx":191
  *             The number of 2-byte words to read
  *         '''
  *         return self.read(0x1000, n)             # <<<<<<<<<<<<<<
@@ -4377,7 +4351,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
  *     def read_int(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_read); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_read); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -4394,7 +4368,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_4096, __pyx_v_n};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
@@ -4402,13 +4376,13 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_int_4096, __pyx_v_n};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else
   #endif
   {
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 181, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 191, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -4419,7 +4393,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
     __Pyx_INCREF(__pyx_v_n);
     __Pyx_GIVEREF(__pyx_v_n);
     PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_n);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -4428,7 +4402,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "IT8951/spi.pyx":171
+  /* "IT8951/spi.pyx":181
  *         self.write(0x0000, ary)
  * 
  *     def read_data(self, n):             # <<<<<<<<<<<<<<
@@ -4451,7 +4425,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_16read_data(CYTHON_UNUSED PyObject *
   return __pyx_r;
 }
 
-/* "IT8951/spi.pyx":183
+/* "IT8951/spi.pyx":193
  *         return self.read(0x1000, n)
  * 
  *     def read_int(self):             # <<<<<<<<<<<<<<
@@ -4483,15 +4457,15 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_18read_int(CYTHON_UNUSED PyObject *_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_TraceFrameInit(__pyx_codeobj__12)
   __Pyx_RefNannySetupContext("read_int", 0);
-  __Pyx_TraceCall("read_int", __pyx_f[0], 183, 0, __PYX_ERR(0, 183, __pyx_L1_error));
+  __Pyx_TraceCall("read_int", __pyx_f[0], 193, 0, __PYX_ERR(0, 193, __pyx_L1_error));
 
-  /* "IT8951/spi.pyx":187
+  /* "IT8951/spi.pyx":197
  *         Read a single 16 bit int from the device
  *         '''
  *         return self.read_data(1)[0]             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_read_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_read_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4505,17 +4479,17 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_18read_int(CYTHON_UNUSED PyObject *_
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_int_1) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_int_1);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 187, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 187, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "IT8951/spi.pyx":183
+  /* "IT8951/spi.pyx":193
  *         return self.read(0x1000, n)
  * 
  *     def read_int(self):             # <<<<<<<<<<<<<<
@@ -19082,7 +19056,6 @@ static struct PyModuleDef __pyx_moduledef = {
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ASCII, __pyx_k_ASCII, sizeof(__pyx_k_ASCII), 0, 0, 1, 1},
   {&__pyx_kp_s_Buffer_view_does_not_expose_stri, __pyx_k_Buffer_view_does_not_expose_stri, sizeof(__pyx_k_Buffer_view_does_not_expose_stri), 0, 0, 1, 0},
-  {&__pyx_n_s_CS, __pyx_k_CS, sizeof(__pyx_k_CS), 0, 0, 1, 1},
   {&__pyx_kp_s_Can_only_create_a_buffer_that_is, __pyx_k_Can_only_create_a_buffer_that_is, sizeof(__pyx_k_Can_only_create_a_buffer_that_is), 0, 0, 1, 0},
   {&__pyx_kp_s_Cannot_assign_to_read_only_memor, __pyx_k_Cannot_assign_to_read_only_memor, sizeof(__pyx_k_Cannot_assign_to_read_only_memor), 0, 0, 1, 0},
   {&__pyx_kp_s_Cannot_create_writable_memory_vi, __pyx_k_Cannot_create_writable_memory_vi, sizeof(__pyx_k_Cannot_create_writable_memory_vi), 0, 0, 1, 0},
@@ -19091,7 +19064,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
   {&__pyx_kp_u_Error_in_bcm2835_init, __pyx_k_Error_in_bcm2835_init, sizeof(__pyx_k_Error_in_bcm2835_init), 0, 1, 0, 0},
   {&__pyx_n_u_H, __pyx_k_H, sizeof(__pyx_k_H), 0, 1, 0, 1},
-  {&__pyx_n_s_HRDY, __pyx_k_HRDY, sizeof(__pyx_k_HRDY), 0, 0, 1, 1},
   {&__pyx_n_s_IT8951_spi, __pyx_k_IT8951_spi, sizeof(__pyx_k_IT8951_spi), 0, 0, 1, 1},
   {&__pyx_kp_s_IT8951_spi_pyx, __pyx_k_IT8951_spi_pyx, sizeof(__pyx_k_IT8951_spi_pyx), 0, 0, 1, 0},
   {&__pyx_kp_s_Incompatible_checksums_s_vs_0xb0, __pyx_k_Incompatible_checksums_s_vs_0xb0, sizeof(__pyx_k_Incompatible_checksums_s_vs_0xb0), 0, 0, 1, 0},
@@ -19218,8 +19190,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 31, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 89, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 109, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(2, 133, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(2, 151, __pyx_L1_error)
@@ -19236,25 +19208,25 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "IT8951/spi.pyx":31
+  /* "IT8951/spi.pyx":37
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:
  *             raise RuntimeError("Error in bcm2835_init")             # <<<<<<<<<<<<<<
  * 
  *         bcm2835_spi_begin();
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_Error_in_bcm2835_init); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_Error_in_bcm2835_init); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "IT8951/spi.pyx":60
+  /* "IT8951/spi.pyx":70
  *         # initializing it is unnecessary here, but read() is not called
  *         # with large arrays so this should not be a performance problem
  *         cdef array.array rtn = array.array('H', (0,)*count)             # <<<<<<<<<<<<<<
  *         cdef unsigned short[:] crtn = rtn
  * 
  */
-  __pyx_tuple__6 = PyTuple_New(1); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_New(1); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
@@ -19453,125 +19425,125 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
 
-  /* "IT8951/spi.pyx":28
+  /* "IT8951/spi.pyx":34
  * class SPI:
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:
  */
-  __pyx_tuple__32 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_init_rtn); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_init_rtn); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_init, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_codeobj_ = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_init, 34, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj_)) __PYX_ERR(0, 34, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":39
+  /* "IT8951/spi.pyx":49
  * 	# TODO: should initialize HRDY here
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
  *         bcm2835_spi_end()
  *         bcm2835_close()
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_del, 39, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_codeobj__3 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_del, 49, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__3)) __PYX_ERR(0, 49, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":43
+  /* "IT8951/spi.pyx":53
  *         bcm2835_close()
  * 
  *     def wait_ready(self):             # <<<<<<<<<<<<<<
  *         '''
  *         Wait for the device's ready pin to be set
  */
-  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_wait_ready, 43, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_wait_ready, 53, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) __PYX_ERR(0, 53, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":51
+  /* "IT8951/spi.pyx":61
  *             pass
  * 
  *     def read(self, preamble, count):             # <<<<<<<<<<<<<<
  *         '''
  *         Send preamble, and return a buffer of 16-bit unsigned ints of length count
  */
-  __pyx_tuple__35 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_preamble, __pyx_n_s_count, __pyx_n_s_rtn, __pyx_n_s_crtn, __pyx_n_s_i); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_preamble, __pyx_n_s_count, __pyx_n_s_rtn, __pyx_n_s_crtn, __pyx_n_s_i); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
-  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read, 51, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read, 61, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 61, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":87
+  /* "IT8951/spi.pyx":97
  *         return rtn
  * 
  *     def write(self, preamble, ary):             # <<<<<<<<<<<<<<
  *         '''
  *         Send preamble, and then write the data in ary (16-bit unsigned ints) over SPI
  */
-  __pyx_tuple__36 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_preamble, __pyx_n_s_ary, __pyx_n_s_buf, __pyx_n_s_cbuf, __pyx_n_s_i); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __pyx_tuple__36 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_preamble, __pyx_n_s_ary, __pyx_n_s_buf, __pyx_n_s_cbuf, __pyx_n_s_i); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write, 87, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write, 97, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 97, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":110
+  /* "IT8951/spi.pyx":120
  *         bcm2835_gpio_write(CS,HIGH)
  * 
  *     def write_pixels(self, pixbuf):             # <<<<<<<<<<<<<<
  *         '''
  *         Write the pixels in pixbuf to the device. Pixbuf should be an array of
  */
-  __pyx_tuple__37 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_pixbuf, __pyx_n_s_cbuf, __pyx_n_s_preamble, __pyx_n_s_i); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_tuple__37 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_pixbuf, __pyx_n_s_cbuf, __pyx_n_s_preamble, __pyx_n_s_i); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__37);
   __Pyx_GIVEREF(__pyx_tuple__37);
-  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_pixels, 110, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__37, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_pixels, 120, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) __PYX_ERR(0, 120, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":142
+  /* "IT8951/spi.pyx":152
  *     # various types of data to and from the device
  * 
  *     def write_cmd(self, cmd, *args):             # <<<<<<<<<<<<<<
  *         '''
  *         Send the device a command code
  */
-  __pyx_tuple__38 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_cmd, __pyx_n_s_args, __pyx_n_s_arg); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_tuple__38 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_cmd, __pyx_n_s_args, __pyx_n_s_arg); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__38);
   __Pyx_GIVEREF(__pyx_tuple__38);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_cmd, 142, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARARGS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_cmd, 152, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 152, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":159
+  /* "IT8951/spi.pyx":169
  *             self.write_data([arg])
  * 
  *     def write_data(self, ary):             # <<<<<<<<<<<<<<
  *         '''
  *         Send the device an array of data
  */
-  __pyx_tuple__39 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_ary); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_tuple__39 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_ary); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__39);
   __Pyx_GIVEREF(__pyx_tuple__39);
-  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_data, 159, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__39, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_write_data, 169, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 169, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":171
+  /* "IT8951/spi.pyx":181
  *         self.write(0x0000, ary)
  * 
  *     def read_data(self, n):             # <<<<<<<<<<<<<<
  *         '''
  *         Read n 16-bit words of data from the device
  */
-  __pyx_tuple__40 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_n); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 171, __pyx_L1_error)
+  __pyx_tuple__40 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_n); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__40);
   __Pyx_GIVEREF(__pyx_tuple__40);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read_data, 171, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 171, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__40, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read_data, 181, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 181, __pyx_L1_error)
 
-  /* "IT8951/spi.pyx":183
+  /* "IT8951/spi.pyx":193
  *         return self.read(0x1000, n)
  * 
  *     def read_int(self):             # <<<<<<<<<<<<<<
  *         '''
  *         Read a single 16 bit int from the device
  */
-  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__41);
   __Pyx_GIVEREF(__pyx_tuple__41);
-  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read_int, 183, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_IT8951_spi_pyx, __pyx_n_s_read_int, 193, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 193, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -19649,7 +19621,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_24 = PyInt_FromLong(24); if (unlikely(!__pyx_int_24)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_4096 = PyInt_FromLong(4096); if (unlikely(!__pyx_int_4096)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_24576 = PyInt_FromLong(24576L); if (unlikely(!__pyx_int_24576)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_184977713 = PyInt_FromLong(184977713L); if (unlikely(!__pyx_int_184977713)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -20026,164 +19997,164 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_array, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "IT8951/spi.pyx":23
+  /* "IT8951/spi.pyx":29
  * 
  * # pin numbers
- * HRDY = 24             # <<<<<<<<<<<<<<
- * CS = 8
+ * cdef int HRDY = 24             # <<<<<<<<<<<<<<
+ * cdef int CS = 8
  * 
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_HRDY, __pyx_int_24) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_v_6IT8951_3spi_HRDY = 24;
 
-  /* "IT8951/spi.pyx":24
+  /* "IT8951/spi.pyx":30
  * # pin numbers
- * HRDY = 24
- * CS = 8             # <<<<<<<<<<<<<<
+ * cdef int HRDY = 24
+ * cdef int CS = 8             # <<<<<<<<<<<<<<
  * 
  * class SPI:
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_CS, __pyx_int_8) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_v_6IT8951_3spi_CS = 8;
 
-  /* "IT8951/spi.pyx":26
- * CS = 8
+  /* "IT8951/spi.pyx":32
+ * cdef int CS = 8
  * 
  * class SPI:             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self):
  */
-  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_SPI, __pyx_n_s_SPI, (PyObject *) NULL, __pyx_n_s_IT8951_spi, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_SPI, __pyx_n_s_SPI, (PyObject *) NULL, __pyx_n_s_IT8951_spi, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "IT8951/spi.pyx":28
+  /* "IT8951/spi.pyx":34
  * class SPI:
  * 
  *     def __init__(self):             # <<<<<<<<<<<<<<
  *         init_rtn = bcm2835_init()
  *         if init_rtn != 1:
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_1__init__, 0, __pyx_n_s_SPI___init, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj_)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_1__init__, 0, __pyx_n_s_SPI___init, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj_)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":39
+  /* "IT8951/spi.pyx":49
  * 	# TODO: should initialize HRDY here
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
  *         bcm2835_spi_end()
  *         bcm2835_close()
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_3__del__, 0, __pyx_n_s_SPI___del, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__3)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_3__del__, 0, __pyx_n_s_SPI___del, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__3)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_del, __pyx_t_2) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_del, __pyx_t_2) < 0) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":43
+  /* "IT8951/spi.pyx":53
  *         bcm2835_close()
  * 
  *     def wait_ready(self):             # <<<<<<<<<<<<<<
  *         '''
  *         Wait for the device's ready pin to be set
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_5wait_ready, 0, __pyx_n_s_SPI_wait_ready, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__4)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_5wait_ready, 0, __pyx_n_s_SPI_wait_ready, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__4)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_wait_ready, __pyx_t_2) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_wait_ready, __pyx_t_2) < 0) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":51
+  /* "IT8951/spi.pyx":61
  *             pass
  * 
  *     def read(self, preamble, count):             # <<<<<<<<<<<<<<
  *         '''
  *         Send preamble, and return a buffer of 16-bit unsigned ints of length count
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_7read, 0, __pyx_n_s_SPI_read, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_7read, 0, __pyx_n_s_SPI_read, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__5)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read, __pyx_t_2) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read, __pyx_t_2) < 0) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":87
+  /* "IT8951/spi.pyx":97
  *         return rtn
  * 
  *     def write(self, preamble, ary):             # <<<<<<<<<<<<<<
  *         '''
  *         Send preamble, and then write the data in ary (16-bit unsigned ints) over SPI
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_9write, 0, __pyx_n_s_SPI_write, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__7)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_9write, 0, __pyx_n_s_SPI_write, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__7)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write, __pyx_t_2) < 0) __PYX_ERR(0, 87, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write, __pyx_t_2) < 0) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":110
+  /* "IT8951/spi.pyx":120
  *         bcm2835_gpio_write(CS,HIGH)
  * 
  *     def write_pixels(self, pixbuf):             # <<<<<<<<<<<<<<
  *         '''
  *         Write the pixels in pixbuf to the device. Pixbuf should be an array of
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_11write_pixels, 0, __pyx_n_s_SPI_write_pixels, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_11write_pixels, 0, __pyx_n_s_SPI_write_pixels, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_pixels, __pyx_t_2) < 0) __PYX_ERR(0, 110, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_pixels, __pyx_t_2) < 0) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":142
+  /* "IT8951/spi.pyx":152
  *     # various types of data to and from the device
  * 
  *     def write_cmd(self, cmd, *args):             # <<<<<<<<<<<<<<
  *         '''
  *         Send the device a command code
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_13write_cmd, 0, __pyx_n_s_SPI_write_cmd, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 142, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_13write_cmd, 0, __pyx_n_s_SPI_write_cmd, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_cmd, __pyx_t_2) < 0) __PYX_ERR(0, 142, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_cmd, __pyx_t_2) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":159
+  /* "IT8951/spi.pyx":169
  *             self.write_data([arg])
  * 
  *     def write_data(self, ary):             # <<<<<<<<<<<<<<
  *         '''
  *         Send the device an array of data
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_15write_data, 0, __pyx_n_s_SPI_write_data, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_15write_data, 0, __pyx_n_s_SPI_write_data, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_data, __pyx_t_2) < 0) __PYX_ERR(0, 159, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_write_data, __pyx_t_2) < 0) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":171
+  /* "IT8951/spi.pyx":181
  *         self.write(0x0000, ary)
  * 
  *     def read_data(self, n):             # <<<<<<<<<<<<<<
  *         '''
  *         Read n 16-bit words of data from the device
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_17read_data, 0, __pyx_n_s_SPI_read_data, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_17read_data, 0, __pyx_n_s_SPI_read_data, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 181, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read_data, __pyx_t_2) < 0) __PYX_ERR(0, 171, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read_data, __pyx_t_2) < 0) __PYX_ERR(0, 181, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":183
+  /* "IT8951/spi.pyx":193
  *         return self.read(0x1000, n)
  * 
  *     def read_int(self):             # <<<<<<<<<<<<<<
  *         '''
  *         Read a single 16 bit int from the device
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_19read_int, 0, __pyx_n_s_SPI_read_int, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_6IT8951_3spi_3SPI_19read_int, 0, __pyx_n_s_SPI_read_int, NULL, __pyx_n_s_IT8951_spi, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read_int, __pyx_t_2) < 0) __PYX_ERR(0, 183, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_1, __pyx_n_s_read_int, __pyx_t_2) < 0) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "IT8951/spi.pyx":26
- * CS = 8
+  /* "IT8951/spi.pyx":32
+ * cdef int CS = 8
  * 
  * class SPI:             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self):
  */
-  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_SPI, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_SPI, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SPI, __pyx_t_2) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SPI, __pyx_t_2) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
@@ -20717,67 +20688,6 @@ bad:
     return;
 }
 #endif
-
-/* PyDictVersioning */
-#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
-}
-static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
-    PyObject **dictptr = NULL;
-    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
-    if (offset) {
-#if CYTHON_COMPILING_IN_CPYTHON
-        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
-#else
-        dictptr = _PyObject_GetDictPtr(obj);
-#endif
-    }
-    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
-}
-static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
-    PyObject *dict = Py_TYPE(obj)->tp_dict;
-    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
-        return 0;
-    return obj_dict_version == __Pyx_get_object_dict_version(obj);
-}
-#endif
-
-/* GetModuleGlobalName */
-#if CYTHON_USE_DICT_VERSIONS
-static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
-#else
-static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
-#endif
-{
-    PyObject *result;
-#if !CYTHON_AVOID_BORROWED_REFS
-#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
-    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    } else if (unlikely(PyErr_Occurred())) {
-        return NULL;
-    }
-#else
-    result = PyDict_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-#endif
-#else
-    result = PyObject_GetItem(__pyx_d, name);
-    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
-    if (likely(result)) {
-        return __Pyx_NewRef(result);
-    }
-    PyErr_Clear();
-#endif
-    return __Pyx_GetBuiltinName(name);
-}
 
 /* RaiseArgTupleInvalid */
 static void __Pyx_RaiseArgtupleInvalid(
@@ -21845,6 +21755,67 @@ static PyObject *__Pyx_GetAttr3Default(PyObject *d) {
 static CYTHON_INLINE PyObject *__Pyx_GetAttr3(PyObject *o, PyObject *n, PyObject *d) {
     PyObject *r = __Pyx_GetAttr(o, n);
     return (likely(r)) ? r : __Pyx_GetAttr3Default(d);
+}
+
+/* PyDictVersioning */
+#if CYTHON_USE_DICT_VERSIONS && CYTHON_USE_TYPE_SLOTS
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_tp_dict_version(PyObject *obj) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    return likely(dict) ? __PYX_GET_DICT_VERSION(dict) : 0;
+}
+static CYTHON_INLINE PY_UINT64_T __Pyx_get_object_dict_version(PyObject *obj) {
+    PyObject **dictptr = NULL;
+    Py_ssize_t offset = Py_TYPE(obj)->tp_dictoffset;
+    if (offset) {
+#if CYTHON_COMPILING_IN_CPYTHON
+        dictptr = (likely(offset > 0)) ? (PyObject **) ((char *)obj + offset) : _PyObject_GetDictPtr(obj);
+#else
+        dictptr = _PyObject_GetDictPtr(obj);
+#endif
+    }
+    return (dictptr && *dictptr) ? __PYX_GET_DICT_VERSION(*dictptr) : 0;
+}
+static CYTHON_INLINE int __Pyx_object_dict_version_matches(PyObject* obj, PY_UINT64_T tp_dict_version, PY_UINT64_T obj_dict_version) {
+    PyObject *dict = Py_TYPE(obj)->tp_dict;
+    if (unlikely(!dict) || unlikely(tp_dict_version != __PYX_GET_DICT_VERSION(dict)))
+        return 0;
+    return obj_dict_version == __Pyx_get_object_dict_version(obj);
+}
+#endif
+
+/* GetModuleGlobalName */
+#if CYTHON_USE_DICT_VERSIONS
+static PyObject *__Pyx__GetModuleGlobalName(PyObject *name, PY_UINT64_T *dict_version, PyObject **dict_cached_value)
+#else
+static CYTHON_INLINE PyObject *__Pyx__GetModuleGlobalName(PyObject *name)
+#endif
+{
+    PyObject *result;
+#if !CYTHON_AVOID_BORROWED_REFS
+#if CYTHON_COMPILING_IN_CPYTHON && PY_VERSION_HEX >= 0x030500A1
+    result = _PyDict_GetItem_KnownHash(__pyx_d, name, ((PyASCIIObject *) name)->hash);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    } else if (unlikely(PyErr_Occurred())) {
+        return NULL;
+    }
+#else
+    result = PyDict_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+#endif
+#else
+    result = PyObject_GetItem(__pyx_d, name);
+    __PYX_UPDATE_DICT_CACHE(__pyx_d, result, *dict_cached_value, *dict_version)
+    if (likely(result)) {
+        return __Pyx_NewRef(result);
+    }
+    PyErr_Clear();
+#endif
+    return __Pyx_GetBuiltinName(name);
 }
 
 /* RaiseTooManyValuesToUnpack */

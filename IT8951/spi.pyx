@@ -16,12 +16,18 @@ cdef extern from "bcm2835.h":
      cdef int HIGH
 
      int bcm2835_spi_begin()
+     void bcm2835_spi_setBitOrder(int)
+     void bcm2835_spi_setDataMode(int)
+     void bcm2835_spi_setClockDivider(int)
      int bcm2835_spi_transfer(int)
      void bcm2835_spi_end()
+     cdef int BCM2835_SPI_BIT_ORDER_MSBFIRST
+     cdef int BCM2835_SPI_MODE0
+     cdef int BCM2835_SPI_CLOCK_DIVIDER_32
 
 # pin numbers
-HRDY = 24
-CS = 8
+cdef int HRDY = 24
+cdef int CS = 8
 
 class SPI:
 
@@ -31,6 +37,10 @@ class SPI:
             raise RuntimeError("Error in bcm2835_init")
 
         bcm2835_spi_begin();
+        bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)
+        bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)
+        bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)
+
         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
         bcm2835_gpio_write(CS, HIGH);
 
