@@ -1,6 +1,6 @@
 # IT8951
 
-This Python module implements a driver for the IT8951 e-paper controller, via SPI. 
+This Python 3 module implements a driver for the IT8951 e-paper controller, via SPI. 
 The driver was developed using the 6-inch e-Paper HAT from Waveshare. It hopefully will work for 
 other (related) hardware too.
 
