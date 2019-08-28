@@ -9,7 +9,7 @@ Building the driver requires first installing the bcm2835 C library, which can b
 
 Once you have that installed, clone the repository, enter the directory and run
 ```
-pip install requirements.txt
+pip install -r requirements.txt
 pip install ./
 ```
 
