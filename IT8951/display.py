@@ -1,9 +1,14 @@
 
-from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
-from .interface import EPD
+import tkinter as tk
+from PIL import Image, ImageChops, ImageTk
 
-from PIL import Image, ImageChops
+from .constants import DisplayModes
 
+try:
+    from .interface import EPD
+except ModuleNotFoundError:
+    EPD = None
+    
 class AutoDisplay:
     '''
     This base class tracks changes to its frame_buf attribute, and automatically
@@ -13,7 +18,7 @@ class AutoDisplay:
     implement.
     '''
 
-    def __init__(self, width, height, flip=True, track_gray=False):
+    def __init__(self, width, height, flip=False, track_gray=False):
         self.width = width
         self.height = height
         self.flip = flip
@@ -166,6 +171,11 @@ class AutoEPDDisplay(AutoDisplay):
     def __init__(self, epd=None, vcom=-2.06):
 
         if epd is None:
+            if EPD is None:
+                raise RuntimeError('Problem importing EPD interface. Did you build the '
+                                   'backend with "pip install ./" or "python setup.py '
+                                   'build_ext --inplace"?')
+
             epd = EPD(vcom=vcom)
         self.epd = epd
         AutoDisplay.__init__(self, self.epd.width, self.epd.height)
@@ -186,3 +196,31 @@ class AutoEPDDisplay(AutoDisplay):
             dims,
             mode
         )
+
+
+class VirtualEPDDisplay(AutoDisplay):
+    '''
+    This class opens a Tkinter window showing what would be displayed on the 
+    EPD, to allow testing without a physical e-paper device
+    '''
+
+    def __init__(self, dims=(800,600)):
+        AutoDisplay.__init__(self, dims[0], dims[1])
+
+        self.root = tk.Tk()
+        self.pil_img = self.frame_buf.copy()
+        self.tk_img = ImageTk.PhotoImage(self.pil_img)
+        self.panel = tk.Label(self.root, image=self.tk_img)
+        self.panel.pack(side="bottom", fill="both", expand="yes")
+
+    def __del__(self):
+        self.root.destroy()
+        
+    def update(self, data, xy, dims, mode):
+        data_img = Image.frombytes(self.frame_buf.mode, dims, bytes(data))
+        self.pil_img.paste(data_img, box=xy)
+        self.tk_img = ImageTk.PhotoImage(self.pil_img)
+        self.panel.configure(image=self.tk_img) # not sure if this is actually necessary
+
+        # allow Tk to do whatever it needs to do
+        self.root.update()

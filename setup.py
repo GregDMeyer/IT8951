@@ -1,6 +1,10 @@
 
-import os
 from setuptools import setup, Extension
+
+# check python version
+from sys import version_info
+if version_info[0] != 3:
+    raise RuntimeError("This module is written for Python 3.")
 
 # enable this option if you want to rebuild the .c file yourself with cython
 USE_CYTHON = False

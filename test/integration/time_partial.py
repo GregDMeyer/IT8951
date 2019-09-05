@@ -1,12 +1,13 @@
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import ImageDraw, ImageFont
 import cProfile
 import pstats
 import io
 
 from sys import path
 path += ['../../']
-from IT8951 import EPD, AutoEPDDisplay, constants
+from IT8951 import constants
+from IT8951.display import AutoEPDDisplay
 
 def place_text(img, text, x_offset=0, y_offset=0):
     '''
