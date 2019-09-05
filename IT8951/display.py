@@ -8,7 +8,7 @@ try:
     from .interface import EPD
 except ModuleNotFoundError:
     EPD = None
-    
+
 class AutoDisplay:
     '''
     This base class tracks changes to its frame_buf attribute, and automatically
@@ -168,7 +168,7 @@ class AutoEPDDisplay(AutoDisplay):
     This class initializes the EPD, and uses it to display the updates
     '''
 
-    def __init__(self, epd=None, vcom=-2.06):
+    def __init__(self, epd=None, vcom=-2.06, **kwargs):
 
         if epd is None:
             if EPD is None:
@@ -178,7 +178,7 @@ class AutoEPDDisplay(AutoDisplay):
 
             epd = EPD(vcom=vcom)
         self.epd = epd
-        AutoDisplay.__init__(self, self.epd.width, self.epd.height)
+        AutoDisplay.__init__(self, self.epd.width, self.epd.height, **kwargs)
 
     def update(self, data, xy, dims, mode):
 
@@ -200,7 +200,7 @@ class AutoEPDDisplay(AutoDisplay):
 
 class VirtualEPDDisplay(AutoDisplay):
     '''
-    This class opens a Tkinter window showing what would be displayed on the 
+    This class opens a Tkinter window showing what would be displayed on the
     EPD, to allow testing without a physical e-paper device
     '''
 
@@ -215,7 +215,7 @@ class VirtualEPDDisplay(AutoDisplay):
 
     def __del__(self):
         self.root.destroy()
-        
+
     def update(self, data, xy, dims, mode):
         data_img = Image.frombytes(self.frame_buf.mode, dims, bytes(data))
         self.pil_img.paste(data_img, box=xy)
