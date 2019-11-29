@@ -4,6 +4,7 @@ from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
 from .spi import SPI
 
 from time import sleep
+from os import geteuid
 
 import RPi.GPIO as GPIO
 import numpy as np
@@ -21,6 +22,10 @@ class EPD:
     '''
 
     def __init__(self, vcom=-1.5):
+
+        # check that we are root
+        if geteuid() != 0:
+            raise RuntimeError("EPD controller must be run as root!")
 
         self.spi = SPI()
 
