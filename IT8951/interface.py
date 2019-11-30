@@ -5,6 +5,7 @@ from .spi import SPI
 
 from time import sleep
 from os import geteuid
+from sys import exit
 
 import RPi.GPIO as GPIO
 import numpy as np
@@ -24,8 +25,11 @@ class EPD:
     def __init__(self, vcom=-1.5):
 
         # check that we are root
+        self.early_exit = False
         if geteuid() != 0:
-            raise RuntimeError("EPD controller must be run as root!")
+            print("***EPD controller must be run as root!***")
+            self.early_exit = True
+            exit()
 
         self.spi = SPI()
 
@@ -54,7 +58,8 @@ class EPD:
         self.set_vcom(vcom)
 
     def __del__(self):
-        GPIO.cleanup()
+        if not self.early_exit:
+            GPIO.cleanup()
 
     def load_img_area(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None):
         '''
