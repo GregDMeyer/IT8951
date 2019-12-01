@@ -49,11 +49,19 @@ class SPI:
         bcm2835_gpio_fsel(HRDY, BCM2835_GPIO_FSEL_INPT);
         bcm2835_gpio_set_pud(HRDY, BCM2835_GPIO_PUD_DOWN);
 
-        bcm2835_gpio_write(CS, HIGH);
+        self._write_cs(False);
 
     def __del__(self):
         bcm2835_spi_end()
         bcm2835_close()
+
+    def _write_cs(self, should_listen):
+        '''
+        Signal the SPI it should listen / not listen.
+        Done via CS here
+        '''
+        value_to_write = LOW if should_listen else HIGH
+        bcm2835_gpio_write(CS, value_to_write)
 
     def wait_ready(self):
         '''
@@ -77,7 +85,7 @@ class SPI:
 
         self.wait_ready()
 
-        bcm2835_gpio_write(CS, LOW)
+        self._write_cs(True)
 
         bcm2835_spi_transfer(preamble>>8)
         bcm2835_spi_transfer(preamble)
@@ -95,7 +103,7 @@ class SPI:
             crtn[i] = bcm2835_spi_transfer(0x00)<<8
             crtn[i] |= bcm2835_spi_transfer(0x00)
 
-        bcm2835_gpio_write(CS, HIGH)
+        self._write_cs(False)
 
         return rtn
 
@@ -108,7 +116,7 @@ class SPI:
 
         self.wait_ready()
 
-        bcm2835_gpio_write(CS, LOW)
+        self._write_cs(True)
 
         bcm2835_spi_transfer(preamble>>8)
         bcm2835_spi_transfer(preamble)
@@ -120,7 +128,7 @@ class SPI:
             bcm2835_spi_transfer(buf[i]>>8)
             bcm2835_spi_transfer(buf[i])
 
-        bcm2835_gpio_write(CS,HIGH)
+        self._write_cs(False)
 
     def write_pixels(self, pixbuf):
         '''
@@ -138,7 +146,7 @@ class SPI:
             while not bcm2835_gpio_lev(HRDY):
                 pass
 
-            bcm2835_gpio_write(CS, LOW)
+            self._write_cs(True)
 
             bcm2835_spi_transfer(preamble>>8)
             bcm2835_spi_transfer(preamble)
@@ -149,7 +157,7 @@ class SPI:
             bcm2835_spi_transfer(cbuf[i] >> 8)
             bcm2835_spi_transfer(cbuf[i])
 
-            bcm2835_gpio_write(CS,HIGH)
+            self._write_cs(False)
 
     # the following functions are higher-level for writing and reading
     # various types of data to and from the device
