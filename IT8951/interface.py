@@ -35,7 +35,6 @@ class EPD:
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-        GPIO.setup(Pins.HRDY, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(Pins.RESET, GPIO.OUT, initial=GPIO.HIGH)
 
         # reset
