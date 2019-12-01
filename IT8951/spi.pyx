@@ -3,6 +3,7 @@
 
 from cpython cimport array
 import array
+import time
 
 cdef extern from "bcm2835.h":
      int bcm2835_init()
@@ -31,6 +32,7 @@ cdef extern from "bcm2835.h":
 # pin numbers
 cdef int HRDY = 24
 cdef int CS = 8
+cdef int RESET = 17
 
 class SPI:
 
@@ -46,6 +48,8 @@ class SPI:
 
         bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
 
+        bcm2835_gpio_fsel(RESET, BCM2835_GPIO_FSEL_OUTP);
+
         bcm2835_gpio_fsel(HRDY, BCM2835_GPIO_FSEL_INPT);
         bcm2835_gpio_set_pud(HRDY, BCM2835_GPIO_PUD_DOWN);
 
@@ -54,6 +58,11 @@ class SPI:
     def __del__(self):
         bcm2835_spi_end()
         bcm2835_close()
+
+    def reset(self):
+        bcm2835_gpio_write(RESET, LOW)
+        time.sleep(0.1)
+        bcm2835_gpio_write(RESET, HIGH)
 
     def _write_cs(self, should_listen):
         '''
