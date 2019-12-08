@@ -1,6 +1,6 @@
 
 from . import constants
-from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
+from .constants import Commands, Registers, DisplayModes, PixelModes
 from .spi import SPI
 
 from time import sleep

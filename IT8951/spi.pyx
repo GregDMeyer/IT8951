@@ -29,29 +29,39 @@ cdef extern from "bcm2835.h":
      cdef int BCM2835_SPI_MODE0
      cdef int BCM2835_SPI_CLOCK_DIVIDER_32
 
-# pin numbers
-cdef int HRDY = 24
-cdef int CS = 8
-cdef int RESET = 17
-
 class SPI:
 
-    def __init__(self):
+    # TODO move the pin numbers to a default member of the constructor
+    # Reference them from there instead of the contsts
+    # Remove them from constants.py as well
+    def __init__(
+        self,
+        pin_hrdy=24,
+        pin_cs=8,
+        pin_reset=17,
+    ):
         init_rtn = bcm2835_init()
         if init_rtn != 1:
             raise RuntimeError("Error in bcm2835_init")
+
+        self.pin_hrdy = pin_hrdy
+        self.pin_cs = pin_cs
+        self.pin_reset = pin_reset
 
         bcm2835_spi_begin();
         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST)
         bcm2835_spi_setDataMode(BCM2835_SPI_MODE0)
         bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_32)
 
-        bcm2835_gpio_fsel(CS, BCM2835_GPIO_FSEL_OUTP);
+        if self.pin_cs is not None:
+            bcm2835_gpio_fsel(self.pin_cs, BCM2835_GPIO_FSEL_OUTP);
 
-        bcm2835_gpio_fsel(RESET, BCM2835_GPIO_FSEL_OUTP);
+        if self.pin_reset is not None:
+            bcm2835_gpio_fsel(self.pin_reset, BCM2835_GPIO_FSEL_OUTP);
 
-        bcm2835_gpio_fsel(HRDY, BCM2835_GPIO_FSEL_INPT);
-        bcm2835_gpio_set_pud(HRDY, BCM2835_GPIO_PUD_DOWN);
+        if self.pin_hrdy is not None:
+            bcm2835_gpio_fsel(self.pin_hrdy, BCM2835_GPIO_FSEL_INPT);
+            bcm2835_gpio_set_pud(self.pin_hrdy, BCM2835_GPIO_PUD_DOWN);
 
         self._write_cs(False);
 
@@ -60,24 +70,27 @@ class SPI:
         bcm2835_close()
 
     def reset(self):
-        bcm2835_gpio_write(RESET, LOW)
+        assert self.pin_reset is not None
+        bcm2835_gpio_write(self.pin_reset, LOW)
         time.sleep(0.1)
-        bcm2835_gpio_write(RESET, HIGH)
+        bcm2835_gpio_write(self.pin_reset, HIGH)
 
     def _write_cs(self, should_listen):
         '''
         Signal the SPI it should listen / not listen.
-        Done via CS here
+        Done via self.pin_cs here
         '''
+        assert self.pin_cs is not None
         value_to_write = LOW if should_listen else HIGH
-        bcm2835_gpio_write(CS, value_to_write)
+        bcm2835_gpio_write(self.pin_cs, value_to_write)
 
     def wait_ready(self):
         '''
         Wait for the device's ready pin to be set
         '''
         # TODO: should we sleep just a tiny bit here?
-        while not bcm2835_gpio_lev(HRDY):
+        assert self.pin_hrdy is not None
+        while not bcm2835_gpio_lev(self.pin_hrdy):
             pass
 
     def read(self, preamble, count):
@@ -152,7 +165,7 @@ class SPI:
         # we inline the wait_ready here for speed
         cdef int i
         for i in range(len(cbuf)):
-            while not bcm2835_gpio_lev(HRDY):
+            while not bcm2835_gpio_lev(self.pin_hrdy):
                 pass
 
             self._write_cs(True)
@@ -160,7 +173,7 @@ class SPI:
             bcm2835_spi_transfer(preamble>>8)
             bcm2835_spi_transfer(preamble)
 
-            while not bcm2835_gpio_lev(HRDY):
+            while not bcm2835_gpio_lev(self.pin_hrdy):
                 pass
 
             bcm2835_spi_transfer(cbuf[i] >> 8)

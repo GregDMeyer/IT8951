@@ -1,10 +1,4 @@
 
-# pin numbers
-class Pins:
-    CS    = 8
-    HRDY  = 24
-    RESET = 17
-
 # command codes
 class Commands:
     SYS_RUN      = 0x01
