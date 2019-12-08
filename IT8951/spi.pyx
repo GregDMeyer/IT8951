@@ -162,19 +162,16 @@ class SPI:
 
         cdef unsigned short preamble = 0x0000
 
-        # we inline the wait_ready here for speed
         cdef int i
         for i in range(len(cbuf)):
-            while not bcm2835_gpio_lev(self.pin_hrdy):
-                pass
+            self.wait_ready()
 
             self._write_cs(True)
 
             bcm2835_spi_transfer(preamble>>8)
             bcm2835_spi_transfer(preamble)
 
-            while not bcm2835_gpio_lev(self.pin_hrdy):
-                pass
+            self.wait_ready()
 
             bcm2835_spi_transfer(cbuf[i] >> 8)
             bcm2835_spi_transfer(cbuf[i])
