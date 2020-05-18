@@ -51,7 +51,7 @@ class AutoDisplay:
         Write the full image to the device, and display it using mode
         '''
 
-        self.update(self._get_frame_buf().getdata(), (0,0), (self.width, self.height), mode)
+        self.update(self._get_frame_buf().tobytes(), (0,0), (self.width, self.height), mode)
 
         if self.track_gray:
             if mode == DisplayModes.DU:
@@ -97,7 +97,7 @@ class AutoDisplay:
         xy = (diff_box[0], diff_box[1])
         dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
 
-        self.update(buf.getdata(), xy, dims, mode)
+        self.update(buf.tobytes(), xy, dims, mode)
 
     def clear(self):
         '''

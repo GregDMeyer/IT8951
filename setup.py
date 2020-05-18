@@ -27,7 +27,8 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
 
 setup(
-    name = "IT8951",
+    name='IT8951',
     packages=['IT8951'],
-    ext_modules = extensions
+    version='0.1.0',
+    ext_modules=extensions,
 )

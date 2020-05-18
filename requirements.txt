@@ -1,3 +1,2 @@
-numpy
 RPi.GPIO
 pillow

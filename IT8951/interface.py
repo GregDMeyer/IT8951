@@ -1,14 +1,7 @@
 
 from . import constants
-from .constants import Pins, Commands, Registers, DisplayModes, PixelModes
+from .constants import Commands, Registers, PixelModes
 from .spi import SPI
-
-from time import sleep
-from os import geteuid
-from sys import exit
-
-import RPi.GPIO as GPIO
-import numpy as np
 
 class EPD:
     '''
@@ -24,24 +17,7 @@ class EPD:
 
     def __init__(self, vcom=-1.5):
 
-        # check that we are root
-        self.early_exit = False
-        if geteuid() != 0:
-            print("***EPD controller must be run as root!***")
-            self.early_exit = True
-            exit()
-
         self.spi = SPI()
-
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-        GPIO.setup(Pins.HRDY, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(Pins.RESET, GPIO.OUT, initial=GPIO.HIGH)
-
-        # reset
-        GPIO.output(Pins.RESET, GPIO.LOW)
-        sleep(0.1)
-        GPIO.output(Pins.RESET, GPIO.HIGH)
 
         self.width            = None
         self.height           = None
@@ -56,10 +32,6 @@ class EPD:
         self.write_register(Registers.I80CPCR, 0x1)
 
         self.set_vcom(vcom)
-
-    def __del__(self):
-        if not self.early_exit:
-            GPIO.cleanup()
 
     def load_img_area(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None):
         '''
@@ -84,7 +56,7 @@ class EPD:
             dimensions are assumed to be the dimensions of the display area.
         '''
 
-        endian_type = constants.EndianTypes.LITTLE
+        endian_type = constants.EndianTypes.BIG
         pixel_format = constants.PixelModes.M_4BPP
 
         if xy is None:
@@ -92,8 +64,16 @@ class EPD:
         else:
             self._load_img_area_start(endian_type, pixel_format, rotate_mode, xy, dims)
 
-        buf = self._pack_pixels(buf, pixel_format)
-        self.spi.write_pixels(buf)
+        try:
+            bpp = {
+                PixelModes.M_2BPP : 2,
+                PixelModes.M_4BPP : 4,
+                PixelModes.M_8BPP : 8,
+            }[pixel_format]
+        except KeyError:
+            raise ValueError("invalid pixel format") from None
+
+        self.spi.pack_and_write_pixels(buf, bpp)
 
         self._load_img_end()
 
@@ -136,40 +116,6 @@ class EPD:
         # TODO: figure out the actual limits for vcom
         if not -5 < vcom < 0:
             raise ValueError("vcom must be between -5 and 0")
-
-    @staticmethod
-    def _pack_pixels(buf, pixel_format):
-        '''
-        Take a buffer where each byte represents a pixel, and pack it
-        into 16-bit words according to pixel_format.
-        '''
-        buf = np.array(buf, dtype=np.ubyte)
-
-        if pixel_format == PixelModes.M_8BPP:
-            rtn = np.zeros((buf.size//2,), dtype=np.uint16)
-            rtn |= buf[1::2]
-            rtn <<= 8
-            rtn |= buf[::2]
-
-        elif pixel_format == PixelModes.M_2BPP:
-            rtn = np.zeros((buf.size//8,), dtype=np.uint16)
-            for i in range(7, -1, -1):
-                rtn <<= 2
-                rtn |= buf[i::8] >> 6
-
-        elif pixel_format == PixelModes.M_3BPP:
-            rtn = np.zeros((buf.size//4,), dtype=np.uint16)
-            for i in range(3, -1, -1):
-                rtn <<= 4
-                rtn |= (buf[i::4] & 0xFE) >> 4
-
-        elif pixel_format == PixelModes.M_4BPP:
-            rtn = np.zeros((buf.size//4,), dtype=np.uint16)
-            for i in range(3, -1, -1):
-                rtn <<= 4
-                rtn |= buf[i::4] >> 4
-
-        return rtn
 
     def run(self):
         self.spi.write_cmd(Commands.SYS_RUN)
