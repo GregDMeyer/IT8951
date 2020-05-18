@@ -53,6 +53,14 @@ class DisplayModes:
     A2    = 6
     DU4   = 7
 
+# modes that only require 2bpp
+low_bpp_modes = {
+    DisplayModes.INIT,
+    DisplayModes.DU,
+    DisplayModes.DU4,
+    DisplayModes.A2
+}
+
 class EndianTypes:
     LITTLE = 0
     BIG    = 1

@@ -33,7 +33,7 @@ class EPD:
 
         self.set_vcom(vcom)
 
-    def load_img_area(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None):
+    def load_img_area(self, buf, rotate_mode=constants.Rotate.NONE, xy=None, dims=None, pixel_format=None):
         '''
         Write the pixel data in buf (an array of bytes, 1 per pixel) to device memory.
         This function does not actually display the image (see EPD.display_area).
@@ -57,7 +57,9 @@ class EPD:
         '''
 
         endian_type = constants.EndianTypes.BIG
-        pixel_format = constants.PixelModes.M_4BPP
+
+        if pixel_format is None:
+            pixel_format = constants.PixelModes.M_4BPP
 
         if xy is None:
             self._load_img_start(endian_type, pixel_format, rotate_mode)

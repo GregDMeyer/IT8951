@@ -2,7 +2,7 @@
 import tkinter as tk
 from PIL import Image, ImageChops, ImageTk
 
-from .constants import DisplayModes
+from .constants import DisplayModes, PixelModes, low_bpp_modes
 
 try:
     from .interface import EPD
@@ -71,15 +71,19 @@ class AutoDisplay:
         if self.prev_frame is None:  # first call since initialization
             self.draw_full(mode)
 
+        if mode in low_bpp_modes:
+            round_box = 8
+        else:
+            round_box = 4
+
         # compute diff for this frame
-        # TODO: should not have round_to in this class
-        diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=4)
+        diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=round_box)
 
         if self.track_gray:
             self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
             # reset grayscale changes to zero
             if mode != DisplayModes.DU:
-                diff_box = self._round_bbox(self.gray_change_bbox, round_to=4)
+                diff_box = self._round_bbox(self.gray_change_bbox, round_to=round_box)
                 self.gray_change_bbox = None
 
         self.prev_frame = self._get_frame_buf().copy()
@@ -182,12 +186,19 @@ class AutoEPDDisplay(AutoDisplay):
 
     def update(self, data, xy, dims, mode):
 
+        # these modes only use two pixels, so use a more dense packing for them
+        if mode in low_bpp_modes:
+            pixel_format = PixelModes.M_2BPP
+        else:
+            pixel_format = PixelModes.M_4BPP
+
         # send image to controller
         self.epd.wait_display_ready()
         self.epd.load_img_area(
             data,
             xy=xy,
-            dims=dims
+            dims=dims,
+            pixel_format=pixel_format
         )
 
         # display sent image
