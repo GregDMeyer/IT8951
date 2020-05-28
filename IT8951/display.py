@@ -55,7 +55,7 @@ class AutoDisplay:
 
         if self.track_gray:
             if mode == DisplayModes.DU:
-                diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=4)
+                diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=8)
                 self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
             else:
                 self.gray_change_bbox = None
@@ -184,13 +184,14 @@ class AutoEPDDisplay(AutoDisplay):
         self.epd = epd
         AutoDisplay.__init__(self, self.epd.width, self.epd.height, **kwargs)
 
-    def update(self, data, xy, dims, mode):
+    def update(self, data, xy, dims, mode, pixel_format=PixelModes.M_4BPP):
 
         # these modes only use two pixels, so use a more dense packing for them
-        if mode in low_bpp_modes:
-            pixel_format = PixelModes.M_2BPP
-        else:
-            pixel_format = PixelModes.M_4BPP
+        # TODO: 2BPP doesn't seem to refresh correctly?
+        # if mode in low_bpp_modes:
+        #     pixel_format = PixelModes.M_2BPP
+        # else:
+        #     pixel_format = PixelModes.M_4BPP
 
         # send image to controller
         self.epd.wait_display_ready()
