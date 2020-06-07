@@ -16,9 +16,6 @@ def main():
 
     args = parse_args()
 
-    from sys import path
-    path += ['../../']
-
     tests = []
 
     if not args.virtual:
