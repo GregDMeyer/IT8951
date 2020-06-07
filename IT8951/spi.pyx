@@ -40,12 +40,12 @@ cdef extern from "linux/spi/spidev.h":
     cdef int SPI_IOC_WR_MODE, SPI_IOC_WR_BITS_PER_WORD, SPI_IOC_WR_MAX_SPEED_HZ
 
 cdef class SPI:
-    cdef int fd, _mode, _bits_per_word, _max_speed_hz, delay
+    cdef int fd, _mode, _bits_per_word, data_hz, cmd_hz, delay
     cdef int max_block_size
 
     cdef unsigned char [:] write_buf, read_buf
 
-    def __cinit__(self, bus=0, device=0, int max_speed_hz=8000000):
+    def __cinit__(self, bus=0, device=0, int cmd_hz=1000000, int data_hz=24000000):
         self.fd = -1
         fd_path = '/dev/spidev{}.{}'.format(bus, device)
         self.fd = os.open(fd_path, os.O_RDWR)
@@ -56,8 +56,10 @@ cdef class SPI:
         self.write_buf = cython.view.array(shape=(self.max_block_size,), itemsize=sizeof(unsigned char), format='B')
         self.read_buf  = cython.view.array(shape=(self.max_block_size,), itemsize=sizeof(unsigned char), format='B')
 
-        # the default value is way too fast, set it to something sane
-        self.max_speed_hz = max_speed_hz
+        # the default spi frequency is way too fast; also it seems that we can set the SPI frequency for data transfer
+        # to be a lot higher than for sending commands
+        self.cmd_hz = cmd_hz
+        self.data_hz = data_hz
 
         self.delay = 0
 
@@ -100,14 +102,11 @@ cdef class SPI:
         while not GPIO.input(Pins.HRDY):
             sleep(0.001)
 
-    def transfer(self, int size, int max_speed_hz=0):
+    def transfer(self, int size, int speed):
         '''
         Perform an SPI transaction of *size* bytes on the preallocated read and write buffers.
         '''
         cdef spi_ioc_transfer tr
-
-        if max_speed_hz == 0:
-            max_speed_hz = self.max_speed_hz
 
         self.wait_ready()
 
@@ -120,7 +119,7 @@ cdef class SPI:
         # set the other transfer parameters
         tr.len = size
         tr.delay_usecs = self.delay
-        tr.speed_hz = max_speed_hz
+        tr.speed_hz = speed
         tr.bits_per_word = self.bits_per_word
 
         #print('w:', ','.join(hex(x) for x in write_buf))
@@ -143,7 +142,7 @@ cdef class SPI:
         self.write_buf[0] = preamble >> 8
         self.write_buf[1] = preamble & 0xFF
 
-        self.transfer(buflen)
+        self.transfer(buflen, speed=self.cmd_hz)
 
         rtn = cython.view.array(shape=(count,), itemsize=sizeof(unsigned short), format='H')
         cdef int i
@@ -169,7 +168,7 @@ cdef class SPI:
             self.write_buf[2*i+2] = ary[i] >> 8
             self.write_buf[2*i+3] = ary[i] & 0xFF
 
-        self.transfer(buflen)
+        self.transfer(buflen, speed=self.cmd_hz)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -205,7 +204,7 @@ cdef class SPI:
                 self.write_buf[byte_idx] = t
 
             # it seems we can crank up the SPI speed here somewhat
-            self.transfer(nbytes, max_speed_hz=24000000)
+            self.transfer(nbytes, speed=self.data_hz)
 
     ##### higher level read/write functions
 
@@ -287,17 +286,3 @@ cdef class SPI:
         result = ioctl(self.fd, SPI_IOC_WR_BITS_PER_WORD, &self._bits_per_word)
         if result == -1:
             raise IOError("failed setting bits_per_word")
-
-    @property
-    def max_speed_hz(self):
-        result = ioctl(self.fd, SPI_IOC_RD_MAX_SPEED_HZ, &self._max_speed_hz)
-        if result == -1:
-            raise IOError("failed getting max_speed_hz")
-        return self._max_speed_hz
-
-    @max_speed_hz.setter
-    def max_speed_hz(self, int new_max_speed_hz):
-        self._max_speed_hz = new_max_speed_hz
-        result = ioctl(self.fd, SPI_IOC_WR_MAX_SPEED_HZ, &self._max_speed_hz)
-        if result == -1:
-            raise IOError("failed setting max_speed_hz")

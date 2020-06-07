@@ -172,7 +172,9 @@ class AutoEPDDisplay(AutoDisplay):
     This class initializes the EPD, and uses it to display the updates
     '''
 
-    def __init__(self, epd=None, vcom=-2.06, **kwargs):
+    def __init__(self, epd=None, vcom=-2.06,
+                 bus=0, device=0, spi_hz=24000000,
+                 **kwargs):
 
         if epd is None:
             if EPD is None:
@@ -180,7 +182,8 @@ class AutoEPDDisplay(AutoDisplay):
                                    'backend with "pip install ./" or "python setup.py '
                                    'build_ext --inplace"?')
 
-            epd = EPD(vcom=vcom)
+            epd = EPD(vcom=vcom, bus=bus, device=device, data_hz=spi_hz)
+
         self.epd = epd
         AutoDisplay.__init__(self, self.epd.width, self.epd.height, **kwargs)
 

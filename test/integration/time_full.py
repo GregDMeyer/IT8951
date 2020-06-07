@@ -23,7 +23,7 @@ class Profiler:
 
 def main():
     print('Initializing...')
-    display = AutoEPDDisplay(vcom=-2.06)
+    display = AutoEPDDisplay(vcom=-2.06, spi_hz=24000000)
 
     display.clear()
 

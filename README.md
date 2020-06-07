@@ -24,14 +24,12 @@ one is different. There might be a suggested VCOM value marked on the cable of y
 #### Data transfer
 
 You might be able to squeeze some extra performance out of the data transfer by increasing the SPI
-clock frequency. In my experience, you can only increase the frequency for the pixel transfer, if you
-increase it too much for any other data transfer the transfer will fail.
-
-The SPI frequency for transferring pixel data is currently hardcoded at 24 MHz, which is the maximum
+clock frequency.
+The SPI frequency for transferring pixel data is by default set at 24 MHz, which is the maximum
 stated in the IT8951 chip spec [here](https://www.waveshare.com/w/upload/1/18/IT8951_D_V0.2.4.3_20170728.pdf)
-(page 41). But, you could try setting higher and seeing if it works anyway. It is set on line 208 of `IT8951/spi.pyx`.
-If you change `spi.pyx`, don't forget to tell `setup.py` to use Cython when you build or your change won't have
-any effect.
+(page 41).
+But, you could try setting higher and seeing if it works anyway.
+It is set by passing the "spi_hz" argument to the Display or EPD classes (see example in tests/integration/tests.py).
 
 ### Updates for version 0.1.0
 

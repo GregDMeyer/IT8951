@@ -13,11 +13,15 @@ class EPD:
     vcom : float
          The VCOM voltage that produces optimal display. Varies from
          device to device.
+
+    **spi_kwargs
+         Extra arguments will be passed to the SPI class's initialization.
+         See spi.pyx for details.
     '''
 
-    def __init__(self, vcom=-1.5):
+    def __init__(self, vcom=-1.5, **spi_kwargs):
 
-        self.spi = SPI()
+        self.spi = SPI(**spi_kwargs)
 
         self.width            = None
         self.height           = None
@@ -92,6 +96,10 @@ class EPD:
         '''
         self.spi.write_cmd(Commands.GET_DEV_INFO)
         data = self.spi.read_data(20)
+
+        if all(x == 0 for x in data):
+            raise RuntimeError("communication with device failed")
+
         self.width  = data[0]
         self.height = data[1]
         self.img_buf_address = data[3] << 16 | data[2]
