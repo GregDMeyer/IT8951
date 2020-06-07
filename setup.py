@@ -1,4 +1,5 @@
 
+from os import environ
 from setuptools import setup, Extension
 
 # check python version
@@ -6,8 +7,9 @@ from sys import version_info
 if version_info[0] != 3:
     raise RuntimeError("This module is written for Python 3.")
 
-# enable this option if you want to rebuild the .c file yourself with cython
-USE_CYTHON = False
+# use this option if you want to rebuild the .c file yourself with cython
+# enable by setting "USE_CYTHON" environment variable before building
+USE_CYTHON = 'USE_CYTHON' in environ
 
 if USE_CYTHON:
     ext = '.pyx'

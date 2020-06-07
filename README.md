@@ -29,7 +29,7 @@ The SPI frequency for transferring pixel data is by default set at 24 MHz, which
 stated in the IT8951 chip spec [here](https://www.waveshare.com/w/upload/1/18/IT8951_D_V0.2.4.3_20170728.pdf)
 (page 41).
 But, you could try setting higher and seeing if it works anyway.
-It is set by passing the "spi_hz" argument to the Display or EPD classes (see example in tests/integration/tests.py).
+It is set by passing the `spi_hz` argument to the Display or EPD classes (see example in `tests/integration/tests.py`).
 
 ### Updates for version 0.1.0
 
@@ -39,3 +39,8 @@ by communicating with the Linux kernel through `/dev/spidev*`. This means:
  - `sudo` no longer required
  - requires neither the `bcm2835` C library nor the `spidev` Python module
  - data transfer is way faster than before!
+
+### Hacking
+
+If you modify `spi.pyx`, make sure to set the `USE_CYTHON` environment variable before building---otherwise your
+changes will not be compiled into `spi.c`.
