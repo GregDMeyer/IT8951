@@ -20,7 +20,6 @@ extensions = [
     Extension(
         "IT8951.spi",
         ["IT8951/spi"+ext],
-        libraries=['bcm2835'],
     )
 ]
 
