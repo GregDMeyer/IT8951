@@ -1,11 +1,11 @@
 '''
 This file contains various functions to test different aspects
 of the module's display capabilities. Each function takes only
-an AutoDisplay object (or, probably, an object of a type derived 
+an AutoDisplay object (or, probably, an object of a type derived
 from that class) as an argument, so they can be used with either
 an actual AutoEPDDisplay, or a VirtualEPDDisplay, or something else.
 
-See test.py for an example. 
+See test.py for an example.
 '''
 
 # functions defined in this file
@@ -49,11 +49,20 @@ def display_gradient(display):
             (i+1)*display.width//16,  # xmax
             display.height            # ymax
         )
-        
+
         display.frame_buf.paste(color, box=box)
 
     # update display
     display.draw_full(constants.DisplayModes.GC16)
+
+    # then add some black and white bars on top of it, to test updating with DU on top of GC16
+    box = (0, display.height//5, display.width, 2*display.height//5)
+    display.frame_buf.paste(0x00, box=box)
+
+    box = (0, 3*display.height//5, display.width, 4*display.height//5)
+    display.frame_buf.paste(0xF0, box=box)
+
+    display.draw_partial(constants.DisplayModes.DU)
 
 def display_image_8bpp(display):
     img_path = 'images/sleeping_penguin.png'

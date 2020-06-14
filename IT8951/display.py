@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import Image, ImageChops, ImageTk
 
 from .constants import DisplayModes, PixelModes, low_bpp_modes
+from . import img_manip
 
 try:
     from .interface import EPD
@@ -76,8 +77,10 @@ class AutoDisplay:
         else:
             round_box = 4
 
+        frame = self._get_frame_buf()
+
         # compute diff for this frame
-        diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=round_box)
+        diff_box = self._compute_diff_box(self.prev_frame, frame, round_to=round_box)
 
         if self.track_gray:
             self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
@@ -86,17 +89,19 @@ class AutoDisplay:
                 diff_box = self._round_bbox(self.gray_change_bbox, round_to=round_box)
                 self.gray_change_bbox = None
 
-        self.prev_frame = self._get_frame_buf().copy()
+        prev_frame = self.prev_frame
+        self.prev_frame = frame.copy()
 
         # nothing to do
         if diff_box is None:
             return
 
-        buf = self._get_frame_buf().crop(diff_box)
+        buf = frame.crop(diff_box)
 
-        # flatten to black or white
+        # if we are using a black/white only mode, convert any pixels that
+        # changed to black/white
         if mode == DisplayModes.DU:
-            buf = buf.point(lambda x: 0x00 if x < 0xB0 else 0xFF)
+            img_manip.make_changes_bw(prev_frame.crop(diff_box), buf)
 
         xy = (diff_box[0], diff_box[1])
         dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])

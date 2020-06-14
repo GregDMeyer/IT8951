@@ -16,12 +16,19 @@ if USE_CYTHON:
 else:
     ext = '.c'
 
-extensions = [
-    Extension(
-        "IT8951.spi",
-        ["IT8951/spi"+ext],
-    )
+ext_names = [
+    'spi',
+    'img_manip',
 ]
+
+extensions = []
+for name in ext_names:
+    extensions.append(
+        Extension(
+            "IT8951.{}".format(name),
+            ["IT8951/{}{}".format(name, ext)],
+        )
+    )
 
 if USE_CYTHON:
     from Cython.Build import cythonize
