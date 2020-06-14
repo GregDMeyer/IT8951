@@ -89,12 +89,12 @@ def partial_update(display):
     display.frame_buf.paste(0xFF, box=(0, 0, display.width, display.height))
 
     print('  writing full...')
-    _place_text(display.frame_buf, 'partial', x_offset=-200)
+    _place_text(display.frame_buf, 'partial', x_offset=-display.width//4)
     display.draw_full(constants.DisplayModes.GC16)
 
     # TODO: should use 1bpp for partial text update
     print('  writing partial...')
-    _place_text(display.frame_buf, 'update', x_offset=+200)
+    _place_text(display.frame_buf, 'update', x_offset=+display.width//4)
     display.draw_partial(constants.DisplayModes.DU)
 
 # this function is just a helper for the others
@@ -105,7 +105,11 @@ def _place_text(img, text, x_offset=0, y_offset=0):
     fontsize = 80
 
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', fontsize)
+
+    try:
+        font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeSans.ttf', fontsize)
+    except OSError:
+        font = ImageFont.truetype('/usr/share/fonts/TTF/DejaVuSans.ttf', fontsize)
 
     img_width, img_height = img.size
     text_width, _ = font.getsize(text)

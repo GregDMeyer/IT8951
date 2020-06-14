@@ -1,4 +1,5 @@
 
+import warnings
 import tkinter as tk
 from PIL import Image, ImageChops, ImageTk
 
@@ -17,14 +18,22 @@ class AutoDisplay:
 
     Updates are done by calling the update() method, which derived classes should
     implement.
+
+    Note: width and height should be of the physical display, and don't depend on
+    rotation---they will be swapped automatically if rotate is set to CW or CCW
     '''
 
-    def __init__(self, width, height, flip=False, track_gray=False):
-        self.width = width
-        self.height = height
-        self.flip = flip
+    def __init__(self, width, height, rotate=None, flip=False, track_gray=False):
+        if flip:
+            warnings.warn("'flip' option is deprecated---use \"rotate='flip'\" instead", DeprecationWarning)
+            rotate = 'flip'
+        self._set_rotate(rotate)
 
-        self.frame_buf = Image.new('L', (width, height), 0xFF)
+        self.display_dims = (width, height)
+        if rotate in ('CW', 'CCW'):
+            self.frame_buf = Image.new('L', (height, width), 0xFF)
+        else:
+            self.frame_buf = Image.new('L', (width, height), 0xFF)
 
         # keep track of what we have updated,
         # so that we can automatically do partial updates of only the
@@ -38,30 +47,54 @@ class AutoDisplay:
             # start out with no changes
             self.gray_change_bbox = None
 
+    @property
+    def width(self):
+        return self.frame_buf.width
+
+    @property
+    def height(self):
+        return self.frame_buf.height
+
     def _get_frame_buf(self):
         '''
-        Return the frame buf, rotated according to flip
+        Return the frame buf, rotated according to flip. Always returns a copy, even
+        when rotate is None.
         '''
-        if self.flip:
-            return self.frame_buf.rotate(180)
-        else:
-            return self.frame_buf
+        if self._rotate_method is None:
+            return self.frame_buf.copy()
+
+        return self.frame_buf.transpose(self._rotate_method)
+
+    def _set_rotate(self, rotate):
+
+        methods = {
+            None   : None,
+            'CW'   : Image.ROTATE_270,
+            'CCW'  : Image.ROTATE_90,
+            'flip' : Image.ROTATE_180,
+        }
+
+        if rotate not in methods:
+            raise ValueError("invalid value for 'rotate'---options are None, 'CW', 'CCW', and 'flip'")
+
+        self._rotate_method = methods[rotate]
 
     def draw_full(self, mode):
         '''
         Write the full image to the device, and display it using mode
         '''
+        frame = self._get_frame_buf()
 
-        self.update(self._get_frame_buf().tobytes(), (0,0), (self.width, self.height), mode)
+        self.update(frame.tobytes(), (0,0), self.display_dims, mode)
 
         if self.track_gray:
             if mode == DisplayModes.DU:
-                diff_box = self._compute_diff_box(self.prev_frame, self._get_frame_buf(), round_to=8)
+                diff_box = self._compute_diff_box(self.prev_frame, frame, round_to=8)
                 self.gray_change_bbox = self._merge_bbox(self.gray_change_bbox, diff_box)
             else:
                 self.gray_change_bbox = None
 
-        self.prev_frame = self._get_frame_buf().copy()
+        self.prev_frame = frame
 
     def draw_partial(self, mode):
         '''
@@ -89,24 +122,21 @@ class AutoDisplay:
                 diff_box = self._round_bbox(self.gray_change_bbox, round_to=round_box)
                 self.gray_change_bbox = None
 
-        prev_frame = self.prev_frame
-        self.prev_frame = frame.copy()
+        # if it is, nothing to do
+        if diff_box is not None:
+            buf = frame.crop(diff_box)
 
-        # nothing to do
-        if diff_box is None:
-            return
+            # if we are using a black/white only mode, any pixels that changed should be
+            # converted to black/white
+            if mode == DisplayModes.DU:
+                img_manip.make_changes_bw(frame.crop(diff_box), buf)
 
-        buf = frame.crop(diff_box)
+            xy = (diff_box[0], diff_box[1])
+            dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
 
-        # if we are using a black/white only mode, convert any pixels that
-        # changed to black/white
-        if mode == DisplayModes.DU:
-            img_manip.make_changes_bw(prev_frame.crop(diff_box), buf)
+            self.update(buf.tobytes(), xy, dims, mode)
 
-        xy = (diff_box[0], diff_box[1])
-        dims = (diff_box[2]-diff_box[0], diff_box[3]-diff_box[1])
-
-        self.update(buf.tobytes(), xy, dims, mode)
+        self.prev_frame = frame
 
     def clear(self):
         '''
@@ -224,11 +254,11 @@ class VirtualEPDDisplay(AutoDisplay):
     EPD, to allow testing without a physical e-paper device
     '''
 
-    def __init__(self, dims=(800,600)):
-        AutoDisplay.__init__(self, dims[0], dims[1])
+    def __init__(self, dims=(800,600), **kwargs):
+        AutoDisplay.__init__(self, dims[0], dims[1], **kwargs)
 
         self.root = tk.Tk()
-        self.pil_img = self.frame_buf.copy()
+        self.pil_img = self._get_frame_buf().copy()
         self.tk_img = ImageTk.PhotoImage(self.pil_img)
         self.panel = tk.Label(self.root, image=self.tk_img)
         self.panel.pack(side="bottom", fill="both", expand="yes")
@@ -237,7 +267,7 @@ class VirtualEPDDisplay(AutoDisplay):
         self.root.destroy()
 
     def update(self, data, xy, dims, mode):
-        data_img = Image.frombytes(self.frame_buf.mode, dims, bytes(data))
+        data_img = Image.frombytes(self._get_frame_buf().mode, dims, bytes(data))
         self.pil_img.paste(data_img, box=xy)
         self.tk_img = ImageTk.PhotoImage(self.pil_img)
         self.panel.configure(image=self.tk_img) # not sure if this is actually necessary

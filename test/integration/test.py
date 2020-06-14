@@ -10,6 +10,8 @@ def parse_args():
                    help='display using a Tkinter window instead of the '
                         'actual e-paper device (for testing without a '
                         'physical device)')
+    p.add_argument('-r', '--rotate', default=None, choices=['CW', 'CCW', 'flip'],
+                   help='run the tests with the display rotated by the specified value')
     return p.parse_args()
 
 def main():
@@ -27,7 +29,7 @@ def main():
         # value means faster display refreshes. the documentation for the IT8951 device
         # says the max is 24 MHz (24000000), but my device seems to still work as high as
         # 80 MHz (80000000)
-        display = AutoEPDDisplay(vcom=-2.06, spi_hz=24000000)
+        display = AutoEPDDisplay(vcom=-2.06, rotate=args.rotate, spi_hz=24000000)
 
         print('VCOM set to', display.epd.get_vcom())
 
@@ -35,7 +37,7 @@ def main():
 
     else:
         from IT8951.display import VirtualEPDDisplay
-        display = VirtualEPDDisplay(dims=(800, 600))
+        display = VirtualEPDDisplay(dims=(800, 600), rotate=args.rotate)
 
     tests += [
         clear_display,
