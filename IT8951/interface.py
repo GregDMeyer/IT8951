@@ -3,6 +3,8 @@ from . import constants
 from .constants import Commands, Registers, PixelModes
 from .spi import SPI
 
+from time import sleep
+
 class EPD:
     '''
     An interface to the electronic paper display (EPD).
