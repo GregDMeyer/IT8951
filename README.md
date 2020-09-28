@@ -12,7 +12,42 @@ pip install ./
 
 ---
 
-For some examples of usage, take a look at the integration tests.
+### Examples
+
+To display a bitmap image:
+
+```
+from IT8951.display import AutoEPDDisplay
+from IT8951 import constants
+from PIL import Image
+
+display = AutoEPDDisplay(vcom=-2.48)
+
+# Make display clear
+display.clear()
+
+display.frame_buf.paste(0xFF, box=(0, 0, display.width, display.height))
+img = Image.open('IT8951/test/integration/images/sleeping_penguin.png')
+dims = (display.width, display.height)
+img.thumbnail(dims)
+
+# Align image with bottom of display
+paste_coords = [dims[i] - img.size[i] for i in (0,1)]
+display.frame_buf.paste(img, paste_coords)
+
+# Display the image
+display.draw_full(constants.DisplayModes.GC16)
+```
+
+To display some text:
+
+```
+from IT8951.display import AutoEPDDisplay
+from IT8951 import constants
+
+```
+
+For some more examples of usage, take a look at the integration tests in [test/integration](test/integration)
 
 ### Notes on performance
 
