@@ -16,7 +16,7 @@ pip install ./
 
 To display a bitmap image:
 
-```
+```python
 from IT8951.display import AutoEPDDisplay
 from IT8951 import constants
 from PIL import Image
@@ -41,7 +41,7 @@ display.draw_full(constants.DisplayModes.GC16)
 
 To display some text:
 
-```
+```python
 from IT8951.display import AutoEPDDisplay
 from IT8951 import constants
 
