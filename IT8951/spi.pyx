@@ -74,7 +74,7 @@ cdef class SPI:
         GPIO.output(Pins.RESET, GPIO.HIGH)
 
     def __del__(self):
-        GPIO.cleanup()
+        GPIO.cleanup([Pins.HRDY, Pins.RESET])
         if self.fd != -1:
             os.close(self.fd)
 
