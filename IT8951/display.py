@@ -1,7 +1,6 @@
 
 import warnings
-import tkinter as tk
-from PIL import Image, ImageChops, ImageTk
+from PIL import Image, ImageChops
 
 from .constants import DisplayModes, PixelModes, low_bpp_modes
 from . import img_manip
@@ -257,9 +256,14 @@ class VirtualEPDDisplay(AutoDisplay):
     def __init__(self, dims=(800,600), **kwargs):
         AutoDisplay.__init__(self, dims[0], dims[1], **kwargs)
 
+        import tkinter as tk
+        from PIL import ImageTk
+
         self.root = tk.Tk()
+        self.photoimage = ImageTk.PhotoImage
+
         self.pil_img = self._get_frame_buf().copy()
-        self.tk_img = ImageTk.PhotoImage(self.pil_img)
+        self.tk_img = self.photoimage(self.pil_img)
         self.panel = tk.Label(self.root, image=self.tk_img)
         self.panel.pack(side="bottom", fill="both", expand="yes")
 
@@ -269,7 +273,7 @@ class VirtualEPDDisplay(AutoDisplay):
     def update(self, data, xy, dims, mode):
         data_img = Image.frombytes(self._get_frame_buf().mode, dims, bytes(data))
         self.pil_img.paste(data_img, box=xy)
-        self.tk_img = ImageTk.PhotoImage(self.pil_img)
+        self.tk_img = self.photoimage(self.pil_img)
         self.panel.configure(image=self.tk_img) # not sure if this is actually necessary
 
         # allow Tk to do whatever it needs to do
