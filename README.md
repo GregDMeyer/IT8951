@@ -44,3 +44,25 @@ by communicating with the Linux kernel through `/dev/spidev*`. This means:
 
 If you modify `spi.pyx`, make sure to set the `USE_CYTHON` environment variable before building---otherwise your
 changes will not be compiled into `spi.c`.
+
+#### Running the code on Linux desktop
+
+Note that the cython code will not run on Windows.    
+
+With pip only install `pillow`, do not install `RPi.GPIO` (it is only for the Pi, on desktop Linux it will just exit with an error).
+
+Then install some dependencies:
+
+```
+sudo apt-get install python3-dev
+sudo apt-get install python3-tk
+```
+
+finally compile the cython code:
+
+```
+python setup.py build_ext --inplace
+```
+
+Now you can run the tests with the `-v` flag: `python test.py -v`.
+
