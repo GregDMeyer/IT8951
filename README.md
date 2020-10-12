@@ -47,9 +47,11 @@ changes will not be compiled into `spi.c`.
 
 #### Running the code on Linux desktop
 
-Note that the cython code will not run on Windows.    
+You can run this library on desktop Linux distributions (e.g. on Ubuntu) to test out things and for faster development. Its is accomplished by opening a `TKInter` window instead of sending the image data to your Pi connected display, on details how to do it check out https://github.com/GregDMeyer/IT8951/blob/master/test/integration/test.py
 
-With pip only install `pillow`, do not install `RPi.GPIO` (it is only for the Pi, on desktop Linux it will just exit with an error).
+Windows is curently not supported (the `cython` build will fail because the C code depends on some Linux components). It might work if you use some Linux compatibility layer like `WSL` or `Mingw`.
+
+So to get it working first install `pillow` with `pip`. Do not install `RPi.GPIO` (it is only for the Pi, on desktop it will just exit with an error).
 
 Then install some dependencies:
 
