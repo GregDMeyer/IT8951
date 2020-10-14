@@ -10,6 +10,8 @@ pip install -r requirements.txt
 pip install ./
 ```
 
+Make sure that SPI is enabled in `raspi-config`.
+
 ---
 
 For some examples of usage, take a look at the integration tests.
