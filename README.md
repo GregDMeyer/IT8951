@@ -46,3 +46,30 @@ by communicating with the Linux kernel through `/dev/spidev*`. This means:
 
 If you modify `spi.pyx`, make sure to set the `USE_CYTHON` environment variable before building---otherwise your
 changes will not be compiled into `spi.c`.
+
+#### Running the code on Linux desktop
+
+You can run this library on desktop Linux distributions (e.g. on Ubuntu) using a "virtual" display, for testing and development. Instead of appearing on a real ePaper device, the contents will be shown in a `TKInter` window on the desktop. For an example, see the integration tests at [test/integration/test.py](https://github.com/GregDMeyer/IT8951/blob/master/test/integration/test.py) when passed the `-v` option.
+
+Windows is curently not supported (the `cython` build will fail because the C code depends on some Linux components). It might work if you use some Linux compatibility layer like `WSL` or `Mingw`.
+
+To get it working first install `pillow` with `pip`. Do not install `RPi.GPIO` (it is only for the Pi, on desktop it will just exit with an error). You may also need the following dependencies (on Ubuntu + related):
+
+```
+sudo apt-get install python3-dev
+sudo apt-get install python3-tk
+```
+
+Finally, you need to compile the Cython code. From the IT8951 directory you can either do
+
+```
+python setup.py build_ext --inplace
+```
+
+to build the files right in the source tree, or actually install the package with
+
+```
+pip3 install ./
+```
+
+Now you should be able to run the tests with the `-v` flag: `python test.py -v`.
