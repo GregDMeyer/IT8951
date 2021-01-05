@@ -15,9 +15,9 @@ Make sure that SPI is enabled in `raspi-config`. The user executing the code mus
 #### Usage examples
 For some examples of usage, take a look at the integration tests.
 
+---
 
-
-# Notes on performance
+### Notes on performance
 
 #### VCOM value
 
