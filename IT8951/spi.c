@@ -2147,7 +2147,6 @@ static const char __pyx_k_write_data[] = "write_data";
 static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_setwarnings[] = "setwarnings";
-static const char __pyx_k_TimeoutError[] = "TimeoutError";
 static const char __pyx_k_pull_up_down[] = "pull_up_down";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
@@ -2168,6 +2167,7 @@ static const char __pyx_k_failed_setting_mode[] = "failed setting mode";
 static const char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static const char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
 static const char __pyx_k_MemoryView_of_r_object[] = "<MemoryView of %r object>";
+static const char __pyx_k_epddisplay_unavailable[] = "epddisplay unavailable";
 static const char __pyx_k_MemoryView_of_r_at_0x_x[] = "<MemoryView of %r at 0x%x>";
 static const char __pyx_k_contiguous_and_indirect[] = "<contiguous and indirect>";
 static const char __pyx_k_Cannot_index_with_type_s[] = "Cannot index with type '%s'";
@@ -2192,7 +2192,6 @@ static const char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on
 static const char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static const char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
-static const char __pyx_k_timeout_waiting_for_device_to_be[] = "timeout waiting for device to be ready";
 static const char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static const char __pyx_k_warning_could_not_find_maximum_S[] = "warning: could not find maximum SPI transfer size; defaulting to {}";
 static PyObject *__pyx_n_s_ASCII;
@@ -2231,7 +2230,6 @@ static PyObject *__pyx_n_s_PixelModes;
 static PyObject *__pyx_n_s_RESET;
 static PyObject *__pyx_n_s_RPi_GPIO;
 static PyObject *__pyx_n_s_SPI;
-static PyObject *__pyx_n_s_TimeoutError;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
 static PyObject *__pyx_n_s_ValueError;
@@ -2262,6 +2260,7 @@ static PyObject *__pyx_n_s_dict;
 static PyObject *__pyx_n_s_dtype_is_object;
 static PyObject *__pyx_n_s_encode;
 static PyObject *__pyx_n_s_enumerate;
+static PyObject *__pyx_kp_u_epddisplay_unavailable;
 static PyObject *__pyx_n_s_error;
 static PyObject *__pyx_kp_u_failed_getting_bits_per_word;
 static PyObject *__pyx_kp_u_failed_getting_mode;
@@ -2333,7 +2332,6 @@ static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_kp_u_sys_module_spidev_parameters_bu;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_time;
-static PyObject *__pyx_kp_u_timeout_waiting_for_device_to_be;
 static PyObject *__pyx_n_s_transfer;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
@@ -3694,7 +3692,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6wait_ready(CYTHON_UNUSED struct __p
  *           if GPIO.input(Pins.HRDY):
  *             return             # <<<<<<<<<<<<<<
  *           sleep(0.001)
- *         raise TimeoutError("timeout waiting for device to be ready")
+ *         raise IOError("epddisplay unavailable")
  */
       __Pyx_XDECREF(__pyx_r);
       __pyx_r = Py_None; __Pyx_INCREF(Py_None);
@@ -3713,7 +3711,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6wait_ready(CYTHON_UNUSED struct __p
  *           if GPIO.input(Pins.HRDY):
  *             return
  *           sleep(0.001)             # <<<<<<<<<<<<<<
- *         raise TimeoutError("timeout waiting for device to be ready")
+ *         raise IOError("epddisplay unavailable")
  * 
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_sleep); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
@@ -3739,17 +3737,14 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6wait_ready(CYTHON_UNUSED struct __p
   /* "IT8951/spi.pyx":106
  *             return
  *           sleep(0.001)
- *         raise TimeoutError("timeout waiting for device to be ready")             # <<<<<<<<<<<<<<
+ *         raise IOError("epddisplay unavailable")             # <<<<<<<<<<<<<<
  * 
  *     def transfer(self, int size, int speed):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TimeoutError); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 106, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 106, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_Raise(__pyx_t_2, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_Raise(__pyx_t_4, 0, 0, 0);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_ERR(0, 106, __pyx_L1_error)
 
   /* "IT8951/spi.pyx":98
@@ -3776,7 +3771,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_6wait_ready(CYTHON_UNUSED struct __p
 }
 
 /* "IT8951/spi.pyx":108
- *         raise TimeoutError("timeout waiting for device to be ready")
+ *         raise IOError("epddisplay unavailable")
  * 
  *     def transfer(self, int size, int speed):             # <<<<<<<<<<<<<<
  *         '''
@@ -4046,7 +4041,7 @@ static PyObject *__pyx_pf_6IT8951_3spi_3SPI_8transfer(struct __pyx_obj_6IT8951_3
   }
 
   /* "IT8951/spi.pyx":108
- *         raise TimeoutError("timeout waiting for device to be ready")
+ *         raise IOError("epddisplay unavailable")
  * 
  *     def transfer(self, int size, int speed):             # <<<<<<<<<<<<<<
  *         '''
@@ -20552,7 +20547,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_RESET, __pyx_k_RESET, sizeof(__pyx_k_RESET), 0, 0, 1, 1},
   {&__pyx_n_s_RPi_GPIO, __pyx_k_RPi_GPIO, sizeof(__pyx_k_RPi_GPIO), 0, 0, 1, 1},
   {&__pyx_n_s_SPI, __pyx_k_SPI, sizeof(__pyx_k_SPI), 0, 0, 1, 1},
-  {&__pyx_n_s_TimeoutError, __pyx_k_TimeoutError, sizeof(__pyx_k_TimeoutError), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
@@ -20583,6 +20577,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_dtype_is_object, __pyx_k_dtype_is_object, sizeof(__pyx_k_dtype_is_object), 0, 0, 1, 1},
   {&__pyx_n_s_encode, __pyx_k_encode, sizeof(__pyx_k_encode), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
+  {&__pyx_kp_u_epddisplay_unavailable, __pyx_k_epddisplay_unavailable, sizeof(__pyx_k_epddisplay_unavailable), 0, 1, 0, 0},
   {&__pyx_n_s_error, __pyx_k_error, sizeof(__pyx_k_error), 0, 0, 1, 1},
   {&__pyx_kp_u_failed_getting_bits_per_word, __pyx_k_failed_getting_bits_per_word, sizeof(__pyx_k_failed_getting_bits_per_word), 0, 1, 0, 0},
   {&__pyx_kp_u_failed_getting_mode, __pyx_k_failed_getting_mode, sizeof(__pyx_k_failed_getting_mode), 0, 1, 0, 0},
@@ -20654,7 +20649,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_sys_module_spidev_parameters_bu, __pyx_k_sys_module_spidev_parameters_bu, sizeof(__pyx_k_sys_module_spidev_parameters_bu), 0, 1, 0, 0},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_time, __pyx_k_time, sizeof(__pyx_k_time), 0, 0, 1, 1},
-  {&__pyx_kp_u_timeout_waiting_for_device_to_be, __pyx_k_timeout_waiting_for_device_to_be, sizeof(__pyx_k_timeout_waiting_for_device_to_be), 0, 1, 0, 0},
   {&__pyx_n_s_transfer, __pyx_k_transfer, sizeof(__pyx_k_transfer), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
@@ -20670,7 +20664,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 87, __pyx_L1_error)
   __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 90, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 106, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 133, __pyx_L1_error)
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(1, 148, __pyx_L1_error)
@@ -20701,11 +20695,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "IT8951/spi.pyx":106
  *             return
  *           sleep(0.001)
- *         raise TimeoutError("timeout waiting for device to be ready")             # <<<<<<<<<<<<<<
+ *         raise IOError("epddisplay unavailable")             # <<<<<<<<<<<<<<
  * 
  *     def transfer(self, int size, int speed):
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_timeout_waiting_for_device_to_be); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_u_epddisplay_unavailable); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 106, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
