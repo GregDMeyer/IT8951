@@ -103,7 +103,7 @@ cdef class SPI:
           if GPIO.input(Pins.HRDY):
             return
           sleep(0.001)        
-        raise TimeoutError("timeout waiting for device to be ready")
+        raise IOError("epddisplay unavailable")
 
     def transfer(self, int size, int speed):
         '''
