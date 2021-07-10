@@ -99,8 +99,11 @@ cdef class SPI:
         '''
         Wait for the device's ready pin to be set
         '''
-        while not GPIO.input(Pins.HRDY):
-            sleep(0.001)
+        for i in range(0,5000):
+          if GPIO.input(Pins.HRDY):
+            return
+          sleep(0.001)        
+        raise TimeoutError("timeout waiting for device to be ready")
 
     def transfer(self, int size, int speed):
         '''
