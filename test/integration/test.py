@@ -10,7 +10,7 @@ def parse_args():
                    help='display using a Tkinter window instead of the '
                         'actual e-paper device (for testing without a '
                         'physical device)')
-    p.add_argument('-r', '--rotate', default=None, choices=['CW', 'CCW', 'flip'],
+    p.add_argument('-r', '--rotate', default=None, choices=['CW', 'CCW', 'flip', 'mirror'],
                    help='run the tests with the display rotated by the specified value')
     return p.parse_args()
 

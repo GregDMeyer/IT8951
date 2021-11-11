@@ -67,14 +67,15 @@ class AutoDisplay:
     def _set_rotate(self, rotate):
 
         methods = {
-            None   : None,
-            'CW'   : Image.ROTATE_270,
-            'CCW'  : Image.ROTATE_90,
-            'flip' : Image.ROTATE_180,
+            None     : None,
+            'CW'     : Image.ROTATE_270,
+            'CCW'    : Image.ROTATE_90,
+            'flip'   : Image.ROTATE_180,
+            'mirror' : Image.FLIP_LEFT_RIGHT,
         }
 
         if rotate not in methods:
-            raise ValueError("invalid value for 'rotate'---options are None, 'CW', 'CCW', and 'flip'")
+            raise ValueError("invalid value for 'rotate'---options are None, 'CW', 'CCW', 'flip', and 'mirror'")
 
         self._rotate_method = methods[rotate]
 
