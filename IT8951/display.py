@@ -206,7 +206,7 @@ class AutoEPDDisplay(AutoDisplay):
     This class initializes the EPD, and uses it to display the updates
     '''
 
-    def __init__(self, epd=None, vcom=-2.06,
+    def __init__(self, epd=None, vcom=-1.70,
                  bus=0, device=0, spi_hz=24000000,
                  **kwargs):
 

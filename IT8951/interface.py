@@ -21,7 +21,7 @@ class EPD:
          See spi.pyx for details.
     '''
 
-    def __init__(self, vcom=-1.5, **spi_kwargs):
+    def __init__(self, vcom=-1.70, **spi_kwargs):
 
         self.spi = SPI(**spi_kwargs)
 
