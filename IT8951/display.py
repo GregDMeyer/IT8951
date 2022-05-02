@@ -22,10 +22,7 @@ class AutoDisplay:
     rotation---they will be swapped automatically if rotate is set to CW or CCW
     '''
 
-    def __init__(self, width, height, rotate=None, flip=False, track_gray=False):
-        if flip:
-            warnings.warn("'flip' option is deprecated---use \"rotate='flip'\" instead", DeprecationWarning)
-            rotate = 'flip'
+    def __init__(self, width, height, rotate=None, track_gray=False):
         self._set_rotate(rotate)
 
         self.display_dims = (width, height)
