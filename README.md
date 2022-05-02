@@ -73,3 +73,10 @@ pip3 install ./
 ```
 
 Now you should be able to run the tests with the `-v` flag: `python test.py -v`.
+
+## Contributors
+
+Thanks to the following folks for helping improve the library:
+
+ - @BackSlasher
+ - @cetres
