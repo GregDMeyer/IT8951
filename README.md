@@ -81,3 +81,4 @@ Thanks to the following folks for helping improve the library:
  - @BackSlasher
  - @cetres
  - @azzeloof
+ - @matyasf
