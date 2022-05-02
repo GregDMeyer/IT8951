@@ -22,8 +22,8 @@ class AutoDisplay:
     rotation---they will be swapped automatically if rotate is set to CW or CCW
     '''
 
-    def __init__(self, width, height, rotate=None, track_gray=False):
-        self._set_rotate(rotate)
+    def __init__(self, width, height, rotate=None, mirror=False, track_gray=False):
+        self._set_rotate(rotate, mirror)
 
         self.display_dims = (width, height)
         if rotate in ('CW', 'CCW'):
@@ -61,14 +61,22 @@ class AutoDisplay:
 
         return self.frame_buf.transpose(self._rotate_method)
 
-    def _set_rotate(self, rotate):
+    def _set_rotate(self, rotate, mirror):
 
-        methods = {
-            None   : None,
-            'CW'   : Image.ROTATE_270,
-            'CCW'  : Image.ROTATE_90,
-            'flip' : Image.ROTATE_180,
-        }
+        if not mirror:
+            methods = {
+                None   : None,
+                'CW'   : Image.Transpose.ROTATE_270,
+                'CCW'  : Image.Transpose.ROTATE_90,
+                'flip' : Image.Transpose.ROTATE_180,
+            }
+        else:
+            methods = {
+                None   : Image.Transpose.FLIP_LEFT_RIGHT,
+                'CW'   : Image.Transpose.TRANSPOSE,
+                'CCW'  : Image.Transpose.TRANSVERSE,
+                'flip' : Image.Transpose.FLIP_TOP_BOTTOM,
+            }
 
         if rotate not in methods:
             raise ValueError("invalid value for 'rotate'---options are None, 'CW', 'CCW', and 'flip'")
