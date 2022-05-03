@@ -82,3 +82,5 @@ Thanks to the following folks for helping improve the library:
  - @cetres
  - @azzeloof
  - @matyasf
+ - @grob6000
+ - @txoof
