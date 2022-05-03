@@ -17,7 +17,7 @@ cimport cython
 import os
 from posix.ioctl cimport ioctl
 from libc.string cimport memset
-from time import sleep
+from time import time, sleep
 
 import RPi.GPIO as GPIO
 
@@ -42,10 +42,11 @@ cdef extern from "linux/spi/spidev.h":
 cdef class SPI:
     cdef int fd, _mode, _bits_per_word, data_hz, cmd_hz, delay
     cdef int max_block_size
+    cdef float timeout_secs
 
     cdef unsigned char [:] write_buf, read_buf
 
-    def __cinit__(self, bus=0, device=0, int cmd_hz=1000000, int data_hz=24000000):
+    def __cinit__(self, bus=0, device=0, int cmd_hz=1000000, int data_hz=24000000, float timeout_secs=5):
         self.fd = -1
         fd_path = '/dev/spidev{}.{}'.format(bus, device)
         self.fd = os.open(fd_path, os.O_RDWR)
@@ -60,6 +61,8 @@ cdef class SPI:
         # to be a lot higher than for sending commands
         self.cmd_hz = cmd_hz
         self.data_hz = data_hz
+
+        self.timeout_secs = timeout_secs
 
         self.delay = 0
 
@@ -99,7 +102,10 @@ cdef class SPI:
         '''
         Wait for the device's ready pin to be set
         '''
+        start = time()
         while not GPIO.input(Pins.HRDY):
+            if time()-start > self.timeout_secs:
+                raise TimeoutError("Timed out waiting for display to respond")
             sleep(0.001)
 
     def transfer(self, int size, int speed):
