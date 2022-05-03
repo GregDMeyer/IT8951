@@ -33,15 +33,6 @@ stated in the IT8951 chip spec [here](https://www.waveshare.com/w/upload/1/18/IT
 But, you could try setting higher and seeing if it works anyway.
 It is set by passing the `spi_hz` argument to the Display or EPD classes (see example in `tests/integration/tests.py`).
 
-### Updates for version 0.1.0
-
-For this version the backend was rewritten, so that the SPI communication happens directly
-by communicating with the Linux kernel through `/dev/spidev*`. This means:
-
- - `sudo` no longer required
- - requires neither the `bcm2835` C library nor the `spidev` Python module
- - data transfer is way faster than before!
-
 ### Hacking
 
 If you modify `spi.pyx`, make sure to set the `USE_CYTHON` environment variable before building---otherwise your

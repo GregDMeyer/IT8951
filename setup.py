@@ -37,6 +37,6 @@ if USE_CYTHON:
 setup(
     name='IT8951',
     packages=['IT8951'],
-    version='0.1.0',
+    version='0.1.1',
     ext_modules=extensions,
 )
