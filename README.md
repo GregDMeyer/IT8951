@@ -1,8 +1,7 @@
 # IT8951
 
-This Python 3 module implements a driver for the IT8951 e-paper controller, via SPI.
-The driver was developed using the 6-inch e-Paper HAT from Waveshare. It hopefully will work for
-other (related) hardware too.
+This Python 3 module implements a driver for the IT8951 e-paper controller, via the SPI bus.
+The driver was developed using the 6-inch e-Paper HAT from Waveshare and has been confirmed to also work with the 7.8-inch model which uses the same controller HAT. It hopefully will work for other (related) hardware too.
 
 To install, clone the repository, enter the directory and run
 ```
@@ -10,11 +9,13 @@ pip install -r requirements.txt
 pip install ./
 ```
 
-Make sure that SPI is enabled in `raspi-config`.
+#### Raspbian specific information
+Make sure that SPI is enabled in `raspi-config`. The user executing the code must be a member of the groups "spi" and "gpio" to gain access to the required /dev resources without using sudo
+
+#### Usage examples
+For some examples of usage, take a look at the integration tests.
 
 ---
-
-For some examples of usage, take a look at the integration tests.
 
 ### Notes on performance
 
