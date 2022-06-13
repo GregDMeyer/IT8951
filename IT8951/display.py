@@ -149,6 +149,7 @@ class AutoDisplay:
         # set frame buffer to all white
         self.frame_buf.paste(0xFF, box=(0, 0, self.width, self.height))
         self.draw_full(DisplayModes.INIT)
+        self.prev_frame = self._get_frame_buf()
 
     @classmethod
     def _compute_diff_box(cls, a, b, round_to=2):
