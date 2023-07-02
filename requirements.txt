@@ -1,2 +1,2 @@
-RPi.GPIO
-pillow
+RPi.GPIO ~= 0.7.1
+pillow ~= 9.1.0
