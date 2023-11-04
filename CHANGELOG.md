@@ -1,6 +1,17 @@
 
 # Changelog
 
+## 1.0.0 - 2023-11-03
+
+### Changed
+
+ - switched to `pyproject.toml` for build
+ - Cython always used in build; it is automatically installed for the build environment
+
+### Removed
+
+ - `requirements.txt`, requirements are specified in `pyproject.toml`. Fixes #47
+
 ## 0.1.1 - 2022-05-02
 
 ### Added

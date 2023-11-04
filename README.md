@@ -6,11 +6,12 @@ other (related) hardware too.
 
 To install, clone the repository, enter the directory and run
 ```
-pip install -r requirements.txt
-pip install ./
+pip install ./[rpi]
 ```
 
-Make sure that SPI is enabled in `raspi-config`.
+(If you are installing on a platform other than Raspberry Pi, omit the `[rpi]`).
+
+Make sure that SPI is enabled by running `raspi-config` and navigating to `Interface Options`→`SPI`.
 
 ---
 
@@ -33,31 +34,13 @@ stated in the IT8951 chip spec [here](https://www.waveshare.com/w/upload/1/18/IT
 But, you could try setting higher and seeing if it works anyway.
 It is set by passing the `spi_hz` argument to the Display or EPD classes (see example in `tests/integration/tests.py`).
 
-### Hacking
-
-If you modify `spi.pyx`, make sure to set the `USE_CYTHON` environment variable before building---otherwise your
-changes will not be compiled into `spi.c`.
-
 #### Running the code on Linux desktop
 
 You can run this library on desktop Linux distributions (e.g. on Ubuntu) using a "virtual" display, for testing and development. Instead of appearing on a real ePaper device, the contents will be shown in a `TKInter` window on the desktop. For an example, see the integration tests at [test/integration/test.py](https://github.com/GregDMeyer/IT8951/blob/master/test/integration/test.py) when passed the `-v` option.
 
 Windows is curently not supported (the `cython` build will fail because the C code depends on some Linux components). It might work if you use some Linux compatibility layer like `WSL` or `Mingw`.
 
-To get it working first install `pillow` with `pip`. Do not install `RPi.GPIO` (it is only for the Pi, on desktop it will just exit with an error). You may also need the following dependencies (on Ubuntu + related):
-
-```
-sudo apt-get install python3-dev
-sudo apt-get install python3-tk
-```
-
-Finally, you need to compile the Cython code. From the IT8951 directory you can either do
-
-```
-python setup.py build_ext --inplace
-```
-
-to build the files right in the source tree, or actually install the package with
+To do so, simply run
 
 ```
 pip3 install ./

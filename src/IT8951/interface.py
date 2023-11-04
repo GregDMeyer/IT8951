@@ -1,7 +1,6 @@
 
 from . import constants
 from .constants import Commands, Registers, PixelModes
-from .spi import SPI
 
 from time import sleep
 
@@ -23,6 +22,9 @@ class EPD:
 
     def __init__(self, vcom=-1.5, **spi_kwargs):
 
+        # do this here so we don't have to in the case
+        # of a "virtual" display
+        from .spi import SPI
         self.spi = SPI(**spi_kwargs)
 
         self.width            = None

@@ -1,0 +1,32 @@
+[project]
+name = "IT8951"
+description = "Python driver for the IT8951 e-ink display controller."
+authors = [
+    {name = "Greg Kahanamoku-Meyer"},
+    {email = "gregory.meyer@gmail.com"}
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["eink", "epaper"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable"
+]
+version = "1.0.0"
+
+dependencies = [
+    "pillow"
+]
+
+[build-system]
+requires = [
+    "setuptools",
+    "wheel",
+    "Cython"
+]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+rpi = [
+    "RPi.GPIO"
+]

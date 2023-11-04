@@ -1,2 +1,0 @@
-RPi.GPIO
-pillow

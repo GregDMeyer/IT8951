@@ -3,12 +3,9 @@ import warnings
 from PIL import Image, ImageChops
 
 from .constants import DisplayModes, PixelModes, low_bpp_modes
+from .interface import EPD
 from . import img_manip
 
-try:
-    from .interface import EPD
-except ModuleNotFoundError:
-    EPD = None
 
 class AutoDisplay:
     '''
@@ -215,13 +212,7 @@ class AutoEPDDisplay(AutoDisplay):
                  bus=0, device=0, spi_hz=24000000,
                  **kwargs):
 
-        if epd is None:
-            if EPD is None:
-                raise RuntimeError('Problem importing EPD interface. Did you build the '
-                                   'backend with "pip install ./" or "python setup.py '
-                                   'build_ext --inplace"?')
-
-            epd = EPD(vcom=vcom, bus=bus, device=device, data_hz=spi_hz)
+        epd = EPD(vcom=vcom, bus=bus, device=device, data_hz=spi_hz)
 
         self.epd = epd
         AutoDisplay.__init__(self, self.epd.width, self.epd.height, **kwargs)

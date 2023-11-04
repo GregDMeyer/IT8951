@@ -112,7 +112,7 @@ def _place_text(img, text, x_offset=0, y_offset=0):
         font = ImageFont.truetype('/usr/share/fonts/TTF/DejaVuSans.ttf', fontsize)
 
     img_width, img_height = img.size
-    text_width, _ = font.getsize(text)
+    text_width = font.getlength(text)
     text_height = fontsize
 
     draw_x = (img_width - text_width)//2 + x_offset
