@@ -15,7 +15,65 @@ Make sure that SPI is enabled by running `raspi-config` and navigating to `Inter
 
 ---
 
-For some examples of usage, take a look at the integration tests.
+### Examples
+
+To display a bitmap image:
+
+```python
+from IT8951.display import AutoEPDDisplay
+from IT8951 import constants
+from PIL import Image
+
+display = AutoEPDDisplay(vcom=-2.48)
+
+# Make display clear
+display.clear()
+
+display.frame_buf.paste(0xFF, box=(0, 0, display.width, display.height))
+img = Image.open('IT8951/test/integration/images/sleeping_penguin.png')
+dims = (display.width, display.height)
+img.thumbnail(dims)
+
+# Align image with bottom of display
+paste_coords = [dims[i] - img.size[i] for i in (0,1)]
+display.frame_buf.paste(img, paste_coords)
+
+# Display the image
+display.draw_full(constants.DisplayModes.GC16)
+```
+
+To display a polygon:
+
+```python
+import math
+from PIL import Image, ImageDraw
+from PIL import ImagePath
+from IT8951.display import AutoEPDDisplay
+from IT8951 import constants
+
+display = AutoEPDDisplay(vcom=-2.48)
+display.clear()
+
+dims = (display.width, display.height)1
+sides = 6
+
+xy = [
+    ((math.cos(th) + 1) * 300,
+     (math.sin(th) + 1) * 200)
+    for th in [i * (2 * math.pi) / sides for i in range(sides)]
+    ]
+
+image = ImagePath.Path(xy).getbbox()
+img = Image.new("RGB", dims, "#ffffff")
+img1 = ImageDraw.Draw(img)
+img1.polygon(xy, fill ="#000000", outline ="blue")
+
+paste_coords = [dims[i] - img.size[i] for i in (0,1)]
+display.frame_buf.paste(img, paste_coords)
+display.draw_full(constants.DisplayModes.GC16)
+```
+
+For some more examples of usage, take a look at the integration tests in [test/integration](test/integration)
 
 ### Notes on performance
 
